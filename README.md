@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Themis — the trade tribunal ⚖
 
-## Getting Started
+**Every trade deserves due process.** State your intent in plain words. An advocate
+argues it, a skeptic prosecutes it, and a judge rules on live market evidence — then
+the verdict is **keccak256-sealed before execution**, so the record can never be
+rewritten. Verdicts are sold to other agents per-call (x402 / A2MCP) — built for the
+**OKX.AI Genesis Hackathon**.
 
-First, run the development server:
+## Surfaces
+
+| Surface | What it is |
+|---|---|
+| `/` | Landing — the doctrine + the service |
+| `/console` | The court: motion (chat) · evidence (live candles) · docket (live agent record) · ledger (positions, PnL, sealed verdicts + verify) |
+| `GET /api/service/signal` | **A2MCP endpoint** — 402 + x402 terms unpaid; full sealed verdict with `X-PAYMENT`; `?tier=free` for ruling-only |
+| Telegram bot | Same tribunal in chat: intent → live arguments → ✅ Execute / ❌ Dismiss → receipt (`npm run bot`) |
+
+## How it works
+
+1. **Motion** — `lib/agent/intent.ts` parses "long BTC with $200" into a structured intent.
+2. **Evidence** — `lib/market/*` pulls live Bybit ticker + 1h candles; computes RSI-14, EMA-20/50, ATR-14.
+3. **Tribunal** — `lib/agent/tribunal.ts`: Advocate and Skeptic argue from the same
+   snapshot; the Judge scores trend/momentum/RSI/volatility → APPROVE / REVISE (half
+   size) / REJECT with a 0–100 confidence.
+4. **Seal** — `lib/agent/commit.ts` canonicalizes the verdict payload and keccak256-hashes
+   it **at issuance** — commit-reveal. `GET /api/verify/:id` recomputes; tampered records fail.
+5. **Execution** — human confirms (web card or Telegram inline button) → `lib/exec/paper.ts`
+   fills at the live price and marks PnL continuously. Honest paper receipts.
+
+**Chain adapter:** execution is paper-mode by default. `ChainAnchor` (in
+`lib/agent/commit.ts`) is the interface for anchoring seals on-chain (Mantle Sepolia
+`DecisionLog` or XLayer for OKX) — swap in without touching the tribunal.
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # web console on :3000
+npm run bot        # Telegram client (needs TELEGRAM_BOT_TOKEN in .env)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No API keys required for the core demo — Bybit public REST is keyless.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Env (optional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See `.env.example`. `TELEGRAM_BOT_TOKEN` enables the bot.
 
-## Learn More
+## OKX.AI ASP submission (manual steps)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. `npx skills add okx/onchainos-skills --yes -g` · log in to Agentic Wallet
+2. Register + list as **A2MCP** ASP pointing at `/api/service/signal` (review ≤24h)
+3. X post with `#OKXAI` + ≤90s demo · Google form before **Jul 27, 23:59 UTC**

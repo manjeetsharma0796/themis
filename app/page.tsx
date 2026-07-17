@@ -1,65 +1,178 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const CURL_402 = `$ curl https://themis.app/api/service/signal
+HTTP/1.1 402 Payment Required
+{ "x402Version": 1, "accepts": [{ "scheme": "exact",
+  "network": "xlayer", "maxAmountRequired": "0.10",
+  "asset": "USDT", "resource": "/api/service/signal" }] }`;
+
+const CURL_PAID = `$ curl -H "X-PAYMENT: <receipt>" https://themis.app/api/service/signal
+{ "tier": "paid", "signal": { "verdict": { "ruling": "APPROVE",
+  "confidence": 71 }, "commitHash": "0x4be1…", … },
+  "verify": "/api/verify/sig_mda31k2" }`;
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="relative min-h-screen overflow-hidden">
+      {/* drifting scales watermark */}
+      <div
+        aria-hidden
+        className="drift pointer-events-none absolute -right-24 top-24 select-none font-serif text-[26rem] leading-none text-brass opacity-[0.045]"
+      >
+        ⚖
+      </div>
+      {/* brass meridian */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-hairline to-transparent"
+      />
+
+      <header className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-12">
+        <div className="font-serif text-2xl tracking-wide">
+          Themis<span className="text-brass">.</span>
+        </div>
+        <nav className="flex items-center gap-6 font-mono text-xs text-muted">
+          <a href="#doctrine" className="transition-colors hover:text-parchment">
+            doctrine
+          </a>
+          <a href="#service" className="transition-colors hover:text-parchment">
+            the service
+          </a>
+          <Link
+            href="/console"
+            className="keyline rounded px-3 py-1.5 text-brass transition-colors hover:bg-brass hover:text-ink"
+          >
+            open console →
+          </Link>
+        </nav>
+      </header>
+
+      <main className="relative z-10 mx-auto max-w-5xl px-6 sm:px-12">
+        {/* hero */}
+        <section className="pb-24 pt-20 sm:pt-28">
+          <p className="rise font-mono text-xs uppercase tracking-[0.3em] text-brass">
+            the trade tribunal
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <h1
+            className="rise mt-6 font-serif text-5xl leading-[1.05] sm:text-7xl"
+            style={{ animationDelay: "0.08s" }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Every trade deserves
+            <br />
+            <span className="italic text-brass">due process.</span>
+          </h1>
+          <p
+            className="rise mt-8 max-w-xl text-lg leading-relaxed text-muted"
+            style={{ animationDelay: "0.16s" }}
           >
-            Documentation
-          </a>
-        </div>
+            State your intent in plain words. An advocate argues it, a skeptic
+            prosecutes it, and a judge rules on live market evidence — then the
+            verdict is <span className="text-parchment">hash-sealed before execution</span>,
+            so the record can never be rewritten.
+          </p>
+          <div
+            className="rise mt-10 flex flex-wrap items-center gap-4"
+            style={{ animationDelay: "0.24s" }}
+          >
+            <Link
+              href="/console"
+              className="rounded bg-brass px-6 py-3 font-mono text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5"
+            >
+              Bring a motion →
+            </Link>
+            <a
+              href="#service"
+              className="keyline rounded px-6 py-3 font-mono text-sm text-muted transition-colors hover:text-parchment"
+            >
+              curl the service
+            </a>
+          </div>
+          <p
+            className="rise mt-6 font-mono text-xs text-faint"
+            style={{ animationDelay: "0.3s" }}
+          >
+            try: <span className="text-muted">“long BTC with $200”</span> ·{" "}
+            <span className="text-muted">“short SOL 150”</span> — live Bybit
+            evidence · paper fills
+          </p>
+        </section>
+
+        {/* doctrine */}
+        <section id="doctrine" className="border-t border-hairline-soft py-20">
+          <h2 className="font-serif text-3xl">
+            The doctrine<span className="text-brass">.</span>
+          </h2>
+          <div className="mt-10 grid gap-px overflow-hidden rounded border border-hairline-soft bg-hairline-soft sm:grid-cols-3">
+            {[
+              {
+                n: "I",
+                t: "The motion",
+                d: "Your words become a structured intent — side, symbol, size. No forms, no tickets. The agent reads what you mean.",
+              },
+              {
+                n: "II",
+                t: "The tribunal",
+                d: "Advocate and skeptic argue from the same live evidence — price, trend, RSI, volatility. The judge weighs it and rules: approve, revise, or reject.",
+              },
+              {
+                n: "III",
+                t: "The seal",
+                d: "The full verdict is keccak256-committed the instant it is issued — before any fill. Anyone can recompute the hash. Doctored records don't verify.",
+              },
+            ].map((x) => (
+              <div key={x.n} className="bg-surface p-8">
+                <div className="font-serif text-4xl text-brass opacity-70">{x.n}</div>
+                <h3 className="mt-4 font-serif text-xl">{x.t}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{x.d}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* the service */}
+        <section id="service" className="border-t border-hairline-soft py-20">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <h2 className="font-serif text-3xl">
+              Verdicts as a service<span className="text-brass">.</span>
+            </h2>
+            <p className="font-mono text-xs uppercase tracking-widest text-muted">
+              A2MCP · x402 pay-per-call · OKX.AI ASP
+            </p>
+          </div>
+          <p className="mt-4 max-w-2xl text-muted">
+            Other agents buy Themis verdicts per call. No key exchange, no
+            subscription — an x402 payment header unlocks the full transcript,
+            evidence snapshot, and commit proof. Free tier returns the ruling
+            alone.
+          </p>
+          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+            <div className="keyline-soft rounded bg-surface p-5">
+              <p className="mb-3 font-mono text-xs text-down">① unpaid → 402 + terms</p>
+              <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-muted">
+                {CURL_402}
+              </pre>
+            </div>
+            <div className="keyline-soft rounded bg-surface p-5">
+              <p className="mb-3 font-mono text-xs text-up">② paid → sealed verdict</p>
+              <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-muted">
+                {CURL_PAID}
+              </pre>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <footer className="relative z-10 border-t border-hairline-soft px-6 py-8 sm:px-12">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 font-mono text-xs text-faint">
+          <span>Themis — the market is the witness; the agent is the court.</span>
+          <span>
+            paper fills · live Bybit evidence · commit-reveal integrity ·{" "}
+            <Link href="/console" className="text-brass hover:underline">
+              console
+            </Link>
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
