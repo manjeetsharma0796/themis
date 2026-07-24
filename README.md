@@ -12,7 +12,7 @@ rewritten. Verdicts are sold to other agents per-call (x402 / A2MCP) — built f
 |---|---|
 | `/` | Landing — the doctrine + the service |
 | `/console` | The court: motion (chat) · evidence (live candles) · docket (live agent record) · ledger (positions, PnL, sealed verdicts + verify) |
-| `GET /api/service/signal` | **A2MCP endpoint** — 402 + x402 terms unpaid; full sealed verdict with `X-PAYMENT`; `?tier=free` for ruling-only |
+| `GET /api/service/signal` | **A2MCP endpoint (real x402 v2)** — unpaid → 402 + `PaymentRequirements` (`eip155:195`); `X-PAYMENT` (EIP-3009) → verify → settle → sealed verdict + `X-PAYMENT-RESPONSE`; `?tier=free` for ruling-only |
 | Telegram bot | Same tribunal in chat: intent → live arguments → ✅ Execute / ❌ Dismiss → receipt (`npm run bot`) |
 
 ## How it works
@@ -45,8 +45,21 @@ No API keys required for the core demo — Bybit public REST is keyless.
 
 See `.env.example`. `TELEGRAM_BOT_TOKEN` enables the bot.
 
+## x402 settlement (X Layer)
+
+`GET /api/service/signal` speaks **real x402 v2** (`exact` scheme, network `eip155:195`):
+unpaid returns `402` with `accepts: [PaymentRequirements]`; an `X-PAYMENT` header
+(base64 EIP-3009 authorization) is decoded → **verified** → **settled**, and the
+resource returns with an `X-PAYMENT-RESPONSE` header.
+
+Settlement runs through a **facilitator**. Set `X402_FACILITATOR_URL`, `X402_PAY_TO`,
+and `X402_ASSET` (see `.env.example`) and it settles **on X Layer for real**; with none
+set it runs in **demo mode** — structurally validated, receipt labelled
+`settlement:"demo"` (never faked as on-chain). Code: `lib/x402/*`, `lib/chain/xlayer.ts`.
+
 ## OKX.AI ASP submission (manual steps)
 
-1. `npx skills add okx/onchainos-skills --yes -g` · log in to Agentic Wallet
+1. `npx skills add okx/onchainos-skills --yes -g` · log in to Agentic Wallet (email)
 2. Register + list as **A2MCP** ASP pointing at `/api/service/signal` (review ≤24h)
-3. X post with `#OKXAI` + ≤90s demo · Google form before **Jul 27, 23:59 UTC**
+3. Copy the assigned `payTo` + facilitator into `.env` → the endpoint goes **live** (real settle)
+4. X post with `#OKXAI` + ≤90s demo · Google form before **Jul 27, 23:59 UTC**

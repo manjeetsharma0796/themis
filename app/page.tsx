@@ -2,14 +2,15 @@ import Link from "next/link";
 
 const CURL_402 = `$ curl https://themis.app/api/service/signal
 HTTP/1.1 402 Payment Required
-{ "x402Version": 1, "accepts": [{ "scheme": "exact",
-  "network": "xlayer", "maxAmountRequired": "0.10",
-  "asset": "USDT", "resource": "/api/service/signal" }] }`;
+{ "x402Version": 2, "accepts": [{ "scheme": "exact",
+  "network": "eip155:195", "amount": "100000",
+  "asset": "0x…USDT", "payTo": "0x…asp",
+  "resource": "/api/service/signal" }] }`;
 
-const CURL_PAID = `$ curl -H "X-PAYMENT: <receipt>" https://themis.app/api/service/signal
-{ "tier": "paid", "signal": { "verdict": { "ruling": "APPROVE",
-  "confidence": 71 }, "commitHash": "0x4be1…", … },
-  "verify": "/api/verify/sig_mda31k2" }`;
+const CURL_PAID = `$ curl -H "X-PAYMENT: <eip3009-auth>" https://themis.app/api/service/signal
+{ "tier": "paid", "settlement": "onchain",
+  "signal": { "verdict": { "ruling": "APPROVE", "confidence": 71 },
+  "commitHash": "0x4be1…" }, "verify": "/api/verify/sig_mda31k2" }`;
 
 export default function Home() {
   return (
