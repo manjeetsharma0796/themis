@@ -177,6 +177,16 @@ export function Ledger({ version }: { version: number }) {
                     </span>
                     <VerifyChip id={s.id} />
                   </div>
+                  {s.anchorExplorer && (
+                    <a
+                      href={s.anchorExplorer}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-block font-mono text-[10px] text-brass hover:underline"
+                    >
+                      ⛓ anchored on X Layer ↗
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

@@ -72,9 +72,21 @@ function RulingCard({
         </div>
       )}
       {signal.status === "executed" && (
-        <p className="mt-4 font-mono text-xs text-up">
-          ✓ executed{receipt ? ` · receipt ${receipt.slice(0, 14)}…` : ""}
-        </p>
+        <div className="mt-4 space-y-1">
+          <p className="font-mono text-xs text-up">
+            ✓ executed{receipt ? ` · receipt ${receipt.slice(0, 14)}…` : ""}
+          </p>
+          {signal.anchorExplorer && (
+            <a
+              href={signal.anchorExplorer}
+              target="_blank"
+              rel="noreferrer"
+              className="block font-mono text-[10px] text-brass hover:underline"
+            >
+              ⛓ seal anchored on X Layer ↗
+            </a>
+          )}
+        </div>
       )}
       {signal.status === "cancelled" && (
         <p className="mt-4 font-mono text-xs text-faint">✕ dismissed — commit retained</p>

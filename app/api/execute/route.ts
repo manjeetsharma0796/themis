@@ -1,6 +1,7 @@
 // POST /api/execute — user confirmed (or cancelled) a pending proposal
 import { getSignal, saveSignal } from "@/lib/agent/run";
 import { openPosition } from "@/lib/exec/paper";
+import { anchorSeal } from "@/lib/chain/anchor";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,11 @@ export async function POST(req: Request) {
   const position = await openPosition(signal);
   signal.status = "executed";
   signal.revealedAt = Date.now(); // reveal at execution: payload now public + verifiable
+  const anchor = await anchorSeal(signal.commitHash);
+  if (anchor) {
+    signal.anchorTx = anchor.txHash;
+    signal.anchorExplorer = anchor.explorer;
+  }
   saveSignal(signal);
   return Response.json({ signal, position });
 }

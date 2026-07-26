@@ -47,6 +47,8 @@ export type Signal = {
   committedAt: number;
   revealedAt: number | null;
   status: "pending" | "executed" | "cancelled" | "rejected";
+  anchorTx?: string; // X Layer tx hash if the seal was anchored on-chain
+  anchorExplorer?: string; // explorer URL for the anchor tx
 };
 
 export type Position = {
