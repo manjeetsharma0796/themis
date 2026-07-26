@@ -11,6 +11,7 @@ export type ChatItem =
   | { id: string; kind: "user"; text: string }
   | { id: string; kind: "assistant"; text: string; error?: boolean }
   | { id: string; kind: "tool"; name: string; detail: string }
+  | { id: string; kind: "toolresult"; name: string; output: string }
   | { id: string; kind: "chart"; symbol: string; interval: string }
   | { id: string; kind: "proposal"; signal: Signal; position?: Position }
   | { id: string; kind: "models"; options: { provider: string; id: string }[] };
@@ -24,6 +25,7 @@ type ChatEvent =
   | { type: "chips"; items: string[] }
   | { type: "token"; text: string }
   | { type: "endmsg" }
+  | { type: "toolresult"; name: string; output: string }
   | { type: "error"; message: string };
 
 let n = 0;
@@ -119,6 +121,9 @@ export function useCopilot() {
               break;
             case "tool":
               push({ id: nid(), kind: "tool", name: ev.name, detail: ev.detail });
+              break;
+            case "toolresult":
+              push({ id: nid(), kind: "toolresult", name: ev.name, output: ev.output });
               break;
             case "chart":
               setSymbol(ev.symbol);

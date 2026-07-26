@@ -243,6 +243,17 @@ export function ChatPanel({
                 {it.detail && <span className="truncate text-faint">· {it.detail}</span>}
               </div>
             );
+          if (it.kind === "toolresult")
+            return (
+              <div key={it.id} className="docket-in keyline-soft overflow-hidden rounded bg-raised">
+                <div className="border-b border-hairline-soft px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-brass">
+                  ⚙ {it.name}
+                </div>
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap px-3 py-2 font-mono text-[11px] leading-relaxed text-muted">
+                  {it.output}
+                </pre>
+              </div>
+            );
           if (it.kind === "chart")
             return (
               <div key={it.id} className="docket-in">

@@ -21,6 +21,7 @@ export type ChatEvent =
   | { type: "chips"; items: string[] }
   | { type: "token"; text: string }
   | { type: "endmsg" }
+  | { type: "toolresult"; name: string; output: string }
   | { type: "error"; message: string };
 
 const SYSTEM = `You are Themis — a sharp, proactive crypto trading copilot. You help the user read markets and act on them.
@@ -35,6 +36,8 @@ Rules:
 
 const DEFAULT_CHIPS = ["Show me the BTC chart", "What can I buy with $500?", "Should I long SOL?"];
 const MAX_ROUNDS = 6;
+// Tools whose full output is worth showing as a card (not just a one-line call).
+const CARD_TOOLS = new Set([...ACP_TOOL_NAMES, ...SANDBOX_NAMES, ...MCP_MGMT_NAMES]);
 
 function summarizeArgs(raw: string): string {
   try {
@@ -165,6 +168,8 @@ export async function runCopilot(
           emit({ type: "chart", symbol: outcome.ui.symbol, interval: outcome.ui.interval });
         } else if (outcome.ui?.kind === "proposal") {
           emit({ type: "proposal", signal: outcome.ui.signal });
+        } else if (CARD_TOOLS.has(nm)) {
+          emit({ type: "toolresult", name: nm, output: outcome.content });
         }
         messages.push({ role: "tool", tool_call_id: tc.id, content: outcome.content });
       }
