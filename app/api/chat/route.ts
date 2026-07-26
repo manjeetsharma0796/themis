@@ -1,6 +1,8 @@
 // POST /api/chat — streams a full copilot turn as Server-Sent Events.
-// Body: { text: string, history?: {role,content}[] }
+// Body: { text: string, history?: {role,content}[], config?: RuntimeConfig }
+// config carries BYOK keys/models/order from the browser (overrides env).
 import type { ChatMessage } from "@/lib/llm/types";
+import type { RuntimeConfig } from "@/lib/llm/providers";
 import { runCopilot, type ChatEvent } from "@/lib/agent/copilot";
 
 export const dynamic = "force-dynamic";
@@ -10,12 +12,12 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
     text?: string;
     history?: { role: string; content: string }[];
+    config?: RuntimeConfig;
   };
   if (!body.text || !body.text.trim()) {
     return Response.json({ error: "text required" }, { status: 400 });
   }
 
-  // Only carry plain user/assistant turns into history (no tool internals).
   const history: ChatMessage[] = (body.history ?? [])
     .filter((m) => (m.role === "user" || m.role === "assistant") && m.content)
     .slice(-12)
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
       const emit = (e: ChatEvent) =>
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(e)}\n\n`));
       try {
-        await runCopilot(history, body.text!, emit);
+        await runCopilot(history, body.text!, emit, body.config);
       } catch (err) {
         emit({ type: "error", message: err instanceof Error ? err.message : "chat failed" });
       } finally {

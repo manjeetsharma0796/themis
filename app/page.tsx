@@ -76,10 +76,10 @@ export default function Home() {
             style={{ animationDelay: "0.24s" }}
           >
             <Link
-              href="/console"
+              href="/onboarding"
               className="rounded bg-brass px-6 py-3 font-mono text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5"
             >
-              Bring a motion →
+              Get started →
             </Link>
             <a
               href="#service"

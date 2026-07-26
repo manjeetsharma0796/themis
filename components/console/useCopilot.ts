@@ -4,6 +4,7 @@
 // inline charts, ruling cards) + suggestion chips, and handles execute/cancel.
 import { useCallback, useRef, useState } from "react";
 import type { Position, Signal } from "@/lib/types";
+import { configForRequest } from "@/lib/config";
 
 export type ChatItem =
   | { id: string; kind: "user"; text: string }
@@ -55,7 +56,7 @@ export function useCopilot() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, history }),
+        body: JSON.stringify({ text, history, config: configForRequest() }),
       });
       if (!res.ok || !res.body) throw new Error(`chat failed (${res.status})`);
 

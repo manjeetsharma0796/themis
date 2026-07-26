@@ -21,13 +21,21 @@ export default function ConsolePage() {
         <p className="hidden font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-muted md:block">
           trading copilot · paper fills · live okx evidence
         </p>
-        <a
-          href="/api/service/signal?tier=free"
-          target="_blank"
-          className="keyline rounded px-2.5 py-1 font-mono text-[10px] font-medium text-brass transition-colors hover:bg-brass hover:text-ink"
-        >
-          A2MCP endpoint ↗
-        </a>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/settings"
+            className="keyline rounded px-2.5 py-1 font-mono text-[10px] font-medium text-muted transition-colors hover:text-brass"
+          >
+            settings
+          </Link>
+          <a
+            href="/api/service/signal?tier=free"
+            target="_blank"
+            className="keyline rounded px-2.5 py-1 font-mono text-[10px] font-medium text-brass transition-colors hover:bg-brass hover:text-ink"
+          >
+            A2MCP endpoint ↗
+          </a>
+        </div>
       </header>
 
       <PanelGroup

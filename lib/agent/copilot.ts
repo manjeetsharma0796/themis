@@ -5,7 +5,7 @@
 import type { ChatMessage } from "@/lib/llm/types";
 import type { Signal } from "@/lib/types";
 import { llmChat, NoProvidersError } from "@/lib/llm/router";
-import { hasAnyKey } from "@/lib/llm/providers";
+import { hasAnyKey, type RuntimeConfig } from "@/lib/llm/providers";
 import { TOOL_DEFS, executeTool } from "@/lib/agent/tools";
 import { parseIntent } from "@/lib/agent/intent";
 
@@ -41,7 +41,7 @@ function summarizeArgs(raw: string): string {
   }
 }
 
-async function suggestChips(lastAnswer: string): Promise<string[]> {
+async function suggestChips(lastAnswer: string, cfg?: RuntimeConfig): Promise<string[]> {
   try {
     const r = await llmChat([
       {
@@ -50,7 +50,7 @@ async function suggestChips(lastAnswer: string): Promise<string[]> {
           'Output ONLY a JSON array of exactly 3 short next-message ideas (max 6 words each) the user might tap next. No prose.',
       },
       { role: "user", content: `The assistant just said: "${lastAnswer.slice(0, 400)}". Suggestions:` },
-    ]);
+    ], undefined, undefined, cfg);
     const match = (r.content ?? "").match(/\[[\s\S]*\]/);
     if (match) {
       const arr = JSON.parse(match[0]);
@@ -88,9 +88,10 @@ async function runFallback(userText: string, emit: (e: ChatEvent) => void) {
 export async function runCopilot(
   history: ChatMessage[],
   userText: string,
-  emit: (e: ChatEvent) => void
+  emit: (e: ChatEvent) => void,
+  cfg?: RuntimeConfig
 ): Promise<void> {
-  if (!hasAnyKey()) return runFallback(userText, emit);
+  if (!hasAnyKey(cfg)) return runFallback(userText, emit);
 
   const messages: ChatMessage[] = [
     { role: "system", content: SYSTEM },
@@ -108,7 +109,7 @@ export async function runCopilot(
           announcedProvider = true;
           emit({ type: "provider", provider: a.provider });
         }
-      });
+      }, cfg);
 
       if (result.content) {
         emit({ type: "say", text: result.content });
@@ -135,7 +136,7 @@ export async function runCopilot(
       }
     }
 
-    emit({ type: "chips", items: await suggestChips(lastAnswer) });
+    emit({ type: "chips", items: await suggestChips(lastAnswer, cfg) });
   } catch (err) {
     if (err instanceof NoProvidersError) return runFallback(userText, emit);
     emit({

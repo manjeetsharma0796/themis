@@ -1,7 +1,7 @@
 // The fallback router: try each keyed provider in order until one answers.
 // One provider rate-limiting or erroring rolls over to the next automatically.
 import type { ChatMessage, LlmResult, ToolCall, ToolDef } from "@/lib/llm/types";
-import { liveProviders } from "@/lib/llm/providers";
+import { liveProviders, type RuntimeConfig } from "@/lib/llm/providers";
 
 export class NoProvidersError extends Error {
   constructor() {
@@ -15,9 +15,10 @@ export type Attempt = { provider: string; ok: boolean; error?: string };
 export async function llmChat(
   messages: ChatMessage[],
   tools?: ToolDef[],
-  onAttempt?: (a: Attempt) => void
+  onAttempt?: (a: Attempt) => void,
+  cfg?: RuntimeConfig
 ): Promise<LlmResult> {
-  const provs = liveProviders();
+  const provs = liveProviders(cfg);
   if (provs.length === 0) throw new NoProvidersError();
 
   let lastErr = "unknown error";
