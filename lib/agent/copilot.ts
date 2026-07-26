@@ -9,6 +9,7 @@ import { hasAnyKey, type RuntimeConfig } from "@/lib/llm/providers";
 import { TOOL_DEFS, executeTool, type ToolOutcome } from "@/lib/agent/tools";
 import { parseIntent } from "@/lib/agent/intent";
 import { setupMcp } from "@/lib/mcp/client";
+import { acpTools, ACP_TOOL_NAMES, executeAcpTool } from "@/lib/acp/tools";
 
 export type ChatEvent =
   | { type: "provider"; provider: string }
@@ -101,7 +102,7 @@ export async function runCopilot(
   ];
 
   const mcp = await setupMcp(cfg?.mcpServers);
-  const tools = mcp.tools.length ? [...TOOL_DEFS, ...mcp.tools] : TOOL_DEFS;
+  const tools = [...TOOL_DEFS, ...acpTools(), ...mcp.tools];
 
   let announcedProvider = false;
   let lastAnswer = "";
@@ -130,9 +131,11 @@ export async function runCopilot(
 
       for (const tc of result.toolCalls) {
         emit({ type: "tool", name: tc.function.name, detail: summarizeArgs(tc.function.arguments) });
-        const outcome: ToolOutcome = mcp.routes.has(tc.function.name)
-          ? { content: await mcp.call(tc.function.name, tc.function.arguments) }
-          : await executeTool(tc.function.name, tc.function.arguments);
+        const outcome: ToolOutcome = ACP_TOOL_NAMES.has(tc.function.name)
+          ? { content: await executeAcpTool(tc.function.name, tc.function.arguments) }
+          : mcp.routes.has(tc.function.name)
+            ? { content: await mcp.call(tc.function.name, tc.function.arguments) }
+            : await executeTool(tc.function.name, tc.function.arguments);
         if (outcome.ui?.kind === "chart") {
           emit({ type: "chart", symbol: outcome.ui.symbol, interval: outcome.ui.interval });
         } else if (outcome.ui?.kind === "proposal") {
