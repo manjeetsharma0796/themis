@@ -12,7 +12,7 @@ rewritten. Verdicts are sold to other agents per-call (x402 / A2MCP) — built f
 |---|---|
 | `/` | Landing — the doctrine + the service |
 | `/console` | The court: motion (chat) · evidence (live candles) · docket (live agent record) · ledger (positions, PnL, sealed verdicts + verify) |
-| `GET /api/service/signal` | **A2MCP endpoint (real x402 v2)** — unpaid → 402 + `PaymentRequirements` (`eip155:195`); `X-PAYMENT` (EIP-3009) → verify → settle → sealed verdict + `X-PAYMENT-RESPONSE`; `?tier=free` for ruling-only |
+| `GET /api/service/signal` | **A2MCP endpoint (real x402 v2)** — unpaid → 402 + `PaymentRequirements` (`eip155:1952`); `X-PAYMENT` (EIP-3009) → verify → settle → sealed verdict + `X-PAYMENT-RESPONSE`; `?tier=free` for ruling-only |
 | Telegram bot | Same tribunal in chat: intent → live arguments → ✅ Execute / ❌ Dismiss → receipt (`npm run bot`) |
 
 ## How it works
@@ -47,7 +47,7 @@ See `.env.example`. `TELEGRAM_BOT_TOKEN` enables the bot.
 
 ## x402 settlement (X Layer)
 
-`GET /api/service/signal` speaks **real x402 v2** (`exact` scheme, network `eip155:195`):
+`GET /api/service/signal` speaks **real x402 v2** (`exact` scheme, network `eip155:1952`):
 unpaid returns `402` with `accepts: [PaymentRequirements]`; an `X-PAYMENT` header
 (base64 EIP-3009 authorization) is decoded → **verified** → **settled**, and the
 resource returns with an `X-PAYMENT-RESPONSE` header.

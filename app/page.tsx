@@ -3,7 +3,7 @@ import Link from "next/link";
 const CURL_402 = `$ curl https://themis.app/api/service/signal
 HTTP/1.1 402 Payment Required
 { "x402Version": 2, "accepts": [{ "scheme": "exact",
-  "network": "eip155:195", "amount": "100000",
+  "network": "eip155:1952", "amount": "100000",
   "asset": "0x…USDT", "payTo": "0x…asp",
   "resource": "/api/service/signal" }] }`;
 

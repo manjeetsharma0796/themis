@@ -4,7 +4,7 @@
 
 export type PaymentRequirements = {
   scheme: "exact";
-  network: string; // CAIP-2, e.g. "eip155:195"
+  network: string; // CAIP-2, e.g. "eip155:1952"
   amount: string; // atomic units of `asset`, as a string
   asset: string; // ERC-20 token contract
   payTo: string; // recipient (the ASP's Agentic Wallet address)
