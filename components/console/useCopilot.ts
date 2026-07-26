@@ -101,7 +101,7 @@ export function useCopilot() {
               push({ id: nid(), kind: "proposal", signal: ev.signal });
               break;
             case "chips":
-              setChips(ev.items);
+              setChips((ev.items ?? []).filter((x): x is string => typeof x === "string" && x.length > 0));
               break;
             case "error":
               push({ id: nid(), kind: "assistant", text: `⚠ ${ev.message}`, error: true });

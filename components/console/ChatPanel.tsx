@@ -1,13 +1,19 @@
 "use client";
 // The copilot transcript — chat with inline tool calls, inline charts, ruling
 // cards, and tappable suggestion chips.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { Signal } from "@/lib/types";
 import type { ChatItem } from "@/components/console/useCopilot";
 import { InlineChart } from "@/components/console/InlineChart";
 import { Markdown } from "@/components/console/Markdown";
 
 const EXAMPLES = ["What can I buy with $399?", "Show me the SOL chart", "I want to invest in BTC"];
+
+const SLASH = [
+  { cmd: "/model", desc: "pick a model" },
+  { cmd: "/help", desc: "list commands" },
+  { cmd: "/clear", desc: "clear the chat" },
+];
 
 function RulingCard({
   signal,
@@ -120,18 +126,51 @@ export function ChatPanel({
   onDecide: (id: string, d: "confirm" | "cancel") => void;
 }) {
   const [text, setText] = useState("");
+  const [histIdx, setHistIdx] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [items, running, chips]);
 
+  const sentHistory = items
+    .filter((i) => i.kind === "user")
+    .map((i) => (i as { text: string }).text);
+  const slashMatches = text.startsWith("/")
+    ? SLASH.filter((s) => s.cmd.startsWith(text.trim().toLowerCase()))
+    : [];
+
   const submit = () => {
     const t = text.trim();
     if (!t || running) return;
     setText("");
+    setHistIdx(null);
     if (t.startsWith("/")) onCommand(t);
     else onSend(t);
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submit();
+    } else if (e.key === "ArrowUp" && sentHistory.length) {
+      e.preventDefault();
+      const idx = histIdx === null ? sentHistory.length - 1 : Math.max(0, histIdx - 1);
+      setHistIdx(idx);
+      setText(sentHistory[idx]);
+    } else if (e.key === "ArrowDown" && histIdx !== null) {
+      e.preventDefault();
+      const idx = histIdx + 1;
+      if (idx >= sentHistory.length) {
+        setHistIdx(null);
+        setText("");
+      } else {
+        setHistIdx(idx);
+        setText(sentHistory[idx]);
+      }
+    } else if (e.key === "Escape") {
+      setHistIdx(null);
+    }
   };
 
   return (
@@ -260,12 +299,33 @@ export function ChatPanel({
       </div>
 
       <footer className="border-t border-hairline-soft p-3">
+        {slashMatches.length > 0 && (
+          <div className="mb-2 overflow-hidden rounded border border-hairline-soft bg-raised">
+            {slashMatches.map((s) => (
+              <button
+                key={s.cmd}
+                onClick={() => {
+                  setText("");
+                  setHistIdx(null);
+                  onCommand(s.cmd);
+                }}
+                className="flex w-full items-baseline justify-between gap-3 px-3 py-2 text-left font-mono text-xs transition-colors hover:bg-ink"
+              >
+                <span className="text-brass">{s.cmd}</span>
+                <span className="text-faint">{s.desc}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Ask Themis… e.g. what can I buy with $500?"
+            onChange={(e) => {
+              setText(e.target.value);
+              setHistIdx(null);
+            }}
+            onKeyDown={onKeyDown}
+            placeholder="Ask Themis…   /  commands   ·   ↑  history"
             disabled={running}
             className="min-w-0 flex-1 rounded bg-ink px-3 py-2.5 font-mono text-sm text-parchment outline-none ring-1 ring-transparent transition-shadow placeholder:text-faint focus:ring-hairline disabled:opacity-50"
           />

@@ -49,14 +49,24 @@ async function suggestChips(lastAnswer: string, cfg?: RuntimeConfig): Promise<st
       {
         role: "system",
         content:
-          'Output ONLY a JSON array of exactly 3 short next-message ideas (max 6 words each) the user might tap next. No prose.',
+          'Output ONLY a JSON array of exactly 3 short plain strings (max 6 words each) — next-message ideas the user might tap, e.g. ["Show the BTC chart","What can I buy with $500?","Long SOL?"]. Strings only, never objects. No prose.',
       },
       { role: "user", content: `The assistant just said: "${lastAnswer.slice(0, 400)}". Suggestions:` },
     ], undefined, undefined, cfg);
     const match = (r.content ?? "").match(/\[[\s\S]*\]/);
     if (match) {
       const arr = JSON.parse(match[0]);
-      if (Array.isArray(arr) && arr.length) return arr.slice(0, 3).map(String);
+      if (Array.isArray(arr)) {
+        const items = arr
+          .map((x): string | undefined =>
+            typeof x === "string"
+              ? x
+              : x?.text ?? x?.label ?? x?.title ?? x?.idea ?? x?.prompt ?? x?.suggestion
+          )
+          .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+          .slice(0, 3);
+        if (items.length) return items;
+      }
     }
   } catch {
     /* fall through to defaults */
