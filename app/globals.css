@@ -184,6 +184,13 @@ a[href] {
   background: rgba(217, 164, 65, 0.25);
 }
 
+/* highlight.js inside markdown — let our container background show through */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+  color: var(--text);
+}
+
 /* scrollbars that behave in a terminal */
 * {
   scrollbar-width: thin;

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Signal } from "@/lib/types";
 import type { ChatItem } from "@/components/console/useCopilot";
 import { InlineChart } from "@/components/console/InlineChart";
+import { Markdown } from "@/components/console/Markdown";
 
 const EXAMPLES = ["What can I buy with $399?", "Show me the SOL chart", "I want to invest in BTC"];
 
@@ -174,11 +175,13 @@ export function ChatPanel({
             return (
               <div key={it.id} className="flex">
                 <div
-                  className={`max-w-[88%] whitespace-pre-wrap rounded rounded-bl-none border px-3 py-2 text-sm leading-relaxed ${
-                    it.error ? "border-down/40 text-down" : "border-hairline-soft text-parchment"
+                  className={`max-w-[88%] rounded rounded-bl-none border px-3 py-2 text-sm ${
+                    it.error
+                      ? "whitespace-pre-wrap leading-relaxed border-down/40 text-down"
+                      : "border-hairline-soft text-parchment"
                   }`}
                 >
-                  {it.text}
+                  {it.error ? it.text : <Markdown>{it.text}</Markdown>}
                 </div>
               </div>
             );
