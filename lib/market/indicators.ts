@@ -1,7 +1,7 @@
 // Plain-math indicators computed from candles — no dependencies
-import type { Candle } from "@/lib/market/bybit";
+import type { Candle } from "@/lib/market/okx";
 import type { MarketSnapshot } from "@/lib/types";
-import { getCandles, getTicker } from "@/lib/market/bybit";
+import { getCandles, getTicker } from "@/lib/market/okx";
 
 export function ema(values: number[], period: number): number {
   if (values.length === 0) return 0;

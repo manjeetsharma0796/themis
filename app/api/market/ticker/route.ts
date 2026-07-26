@@ -1,5 +1,5 @@
 // GET /api/market/ticker?symbol=BTC — live price for header/PnL marks
-import { getTicker } from "@/lib/market/bybit";
+import { getTicker } from "@/lib/market/okx";
 
 export const dynamic = "force-dynamic";
 

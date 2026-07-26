@@ -1,17 +1,16 @@
 "use client";
-// The Themis console — motion, evidence + docket, ledger. One court, one screen.
+// The Themis console — copilot chat, live evidence chart, ledger. One court, one screen.
 // Panels are draggable: resize any split, layout persists via autoSaveId.
 import Link from "next/link";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ChatPanel } from "@/components/console/ChatPanel";
-import { Docket } from "@/components/console/Docket";
 import { CandleChart } from "@/components/console/CandleChart";
 import { Ledger } from "@/components/console/Ledger";
-import { useAgentRun } from "@/components/console/useAgentRun";
+import { useCopilot } from "@/components/console/useCopilot";
 
 export default function ConsolePage() {
-  const { messages, docket, running, symbol, portfolioVersion, send, decide } =
-    useAgentRun();
+  const { items, chips, running, provider, symbol, portfolioVersion, send, decide } =
+    useCopilot();
 
   return (
     <div className="flex h-screen flex-col bg-ink">
@@ -20,7 +19,7 @@ export default function ConsolePage() {
           Themis<span className="text-brass">.</span>
         </Link>
         <p className="hidden font-mono text-[10px] font-medium uppercase tracking-[0.25em] text-muted md:block">
-          court in continuous session · paper fills · live bybit evidence
+          trading copilot · paper fills · live okx evidence
         </p>
         <a
           href="/api/service/signal?tier=free"
@@ -33,13 +32,15 @@ export default function ConsolePage() {
 
       <PanelGroup
         direction="horizontal"
-        autoSaveId="themis-console-h"
+        autoSaveId="themis-console-v2"
         className="min-h-0 flex-1 p-2"
       >
-        <Panel defaultSize={30} minSize={22} className="overflow-hidden">
+        <Panel defaultSize={36} minSize={26} className="overflow-hidden">
           <ChatPanel
-            messages={messages}
+            items={items}
+            chips={chips}
             running={running}
+            provider={provider}
             onSend={send}
             onDecide={decide}
           />
@@ -47,21 +48,13 @@ export default function ConsolePage() {
 
         <PanelResizeHandle />
 
-        <Panel defaultSize={44} minSize={28} className="overflow-hidden">
-          <PanelGroup direction="vertical" autoSaveId="themis-console-v">
-            <Panel defaultSize={54} minSize={22} className="overflow-hidden">
-              <CandleChart symbol={symbol} />
-            </Panel>
-            <PanelResizeHandle />
-            <Panel defaultSize={46} minSize={18} className="overflow-hidden">
-              <Docket entries={docket} running={running} />
-            </Panel>
-          </PanelGroup>
+        <Panel defaultSize={40} minSize={26} className="overflow-hidden">
+          <CandleChart symbol={symbol} />
         </Panel>
 
         <PanelResizeHandle />
 
-        <Panel defaultSize={26} minSize={19} className="overflow-hidden">
+        <Panel defaultSize={24} minSize={19} className="overflow-hidden">
           <Ledger version={portfolioVersion} />
         </Panel>
       </PanelGroup>

@@ -9,7 +9,7 @@ import {
   type IChartApi,
   type UTCTimestamp,
 } from "lightweight-charts";
-import type { Candle } from "@/lib/market/bybit";
+import type { Candle } from "@/lib/market/okx";
 
 export function CandleChart({ symbol }: { symbol: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -89,7 +89,7 @@ export function CandleChart({ symbol }: { symbol: string }) {
         <div>
           <h2 className="font-serif text-lg">The evidence</h2>
           <p className="font-mono text-[10px] uppercase tracking-widest text-faint">
-            {symbol}/USDT · 1h · bybit live
+            {symbol}/USDT · 1h · okx live
           </p>
         </div>
         {last && (

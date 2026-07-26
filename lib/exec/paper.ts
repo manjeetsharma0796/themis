@@ -1,9 +1,9 @@
 // Paper execution engine — real prices, simulated fills, honest receipts.
-// Swappable for a ChainAnchor-backed executor (Mantle Sepolia / XLayer) later.
+// Swappable for a ChainAnchor-backed executor (OKX X Layer) later.
 import { keccak256, toHex } from "viem";
 import type { PortfolioView, Position, Side, Signal } from "@/lib/types";
 import { readJson, writeJson } from "@/lib/store";
-import { getTicker } from "@/lib/market/bybit";
+import { getTicker } from "@/lib/market/okx";
 
 const EQUITY_START = 10_000;
 

@@ -1,5 +1,5 @@
-// GET /api/market/candles?symbol=BTC&interval=60 — Bybit proxy for the chart
-import { getCandles } from "@/lib/market/bybit";
+// GET /api/market/candles?symbol=BTC&interval=60 — OKX proxy for the chart
+import { getCandles } from "@/lib/market/okx";
 
 export const dynamic = "force-dynamic";
 
