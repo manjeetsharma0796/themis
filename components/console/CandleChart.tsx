@@ -84,7 +84,7 @@ export function CandleChart({ symbol }: { symbol: string }) {
   }, [symbol]);
 
   return (
-    <section className="keyline-soft flex min-h-0 flex-col rounded bg-surface">
+    <section className="keyline-soft flex h-full min-h-0 flex-col rounded bg-surface">
       <header className="flex items-baseline justify-between border-b border-hairline-soft px-4 py-3">
         <div>
           <h2 className="font-serif text-lg">The evidence</h2>

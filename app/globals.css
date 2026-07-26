@@ -2,14 +2,14 @@
 
 /* ── Themis: courtroom terminal ─────────────────────────────── */
 :root {
-  --ink: #0b0e14;
-  --surface: #10141c;
-  --raised: #151a26;
-  --hairline: rgba(217, 164, 65, 0.14);
-  --hairline-soft: rgba(232, 227, 216, 0.07);
-  --text: #e8e3d8;
-  --muted: #8f8b7d;
-  --faint: #78746a;
+  --ink: #0a0d13;
+  --surface: #11151e;
+  --raised: #171d2a;
+  --hairline: rgba(217, 164, 65, 0.22);
+  --hairline-soft: rgba(233, 228, 216, 0.11);
+  --text: #f2ede2;
+  --muted: #bab5a6;
+  --faint: #928d80;
   --brass: #d9a441;
   --brass-deep: #8a6e3b;
   --up: #2e9e74;
@@ -29,7 +29,7 @@
   --color-brass-deep: var(--brass-deep);
   --color-up: var(--up);
   --color-down: var(--down);
-  --font-serif: var(--font-instrument), Georgia, serif;
+  --font-serif: var(--font-fraunces), "Iowan Old Style", Georgia, serif;
   --font-sans: var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
@@ -38,6 +38,38 @@ html {
   background: var(--ink);
   color: var(--text);
 }
+
+/* Fraunces reads best a touch heavier for a serious, professional voice */
+.font-serif {
+  font-weight: 500;
+  font-optical-sizing: auto;
+}
+
+/* ── resizable panel handles (react-resizable-panels) ──────────── */
+[data-resize-handle] {
+  position: relative;
+  background: transparent;
+  transition: background 0.15s ease;
+  flex: 0 0 auto;
+}
+[data-panel-group-direction="horizontal"] > [data-resize-handle] { width: 9px; }
+[data-panel-group-direction="vertical"] > [data-resize-handle] { height: 9px; }
+[data-resize-handle]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: var(--hairline-soft);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+[data-panel-group-direction="horizontal"] > [data-resize-handle]::after { width: 1px; height: 100%; }
+[data-panel-group-direction="vertical"] > [data-resize-handle]::after { height: 1px; width: 100%; }
+[data-resize-handle]:hover::after,
+[data-resize-handle][data-resize-handle-state="drag"]::after {
+  background: var(--brass);
+  box-shadow: 0 0 10px rgba(217, 164, 65, 0.55);
+}
+[data-resize-handle][data-resize-handle-state="drag"] { background: rgba(217, 164, 65, 0.05); }
 
 body {
   font-family: var(--font-geist-sans), sans-serif;
