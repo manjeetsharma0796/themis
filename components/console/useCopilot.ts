@@ -1,17 +1,19 @@
 "use client";
 // Client orchestration for the copilot chat: streams /api/chat SSE into a single
-// ordered transcript of items (user text, assistant text, inline tool calls,
-// inline charts, ruling cards) + suggestion chips, and handles execute/cancel.
-import { useCallback, useRef, useState } from "react";
+// ordered transcript (user/assistant text, inline tool calls, inline charts,
+// ruling cards, model picker) + suggestion chips. Also handles slash commands
+// (/model, /clear, /help) terminal-agent style, and execute/cancel.
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Position, Signal } from "@/lib/types";
-import { configForRequest } from "@/lib/config";
+import { configForRequest, loadConfig, saveConfig } from "@/lib/config";
 
 export type ChatItem =
   | { id: string; kind: "user"; text: string }
   | { id: string; kind: "assistant"; text: string; error?: boolean }
   | { id: string; kind: "tool"; name: string; detail: string }
   | { id: string; kind: "chart"; symbol: string; interval: string }
-  | { id: string; kind: "proposal"; signal: Signal; position?: Position };
+  | { id: string; kind: "proposal"; signal: Signal; position?: Position }
+  | { id: string; kind: "models"; options: { provider: string; id: string }[] };
 
 type ChatEvent =
   | { type: "provider"; provider: string }
@@ -31,6 +33,7 @@ export function useCopilot() {
   const [running, setRunning] = useState(false);
   const [provider, setProvider] = useState<string | null>(null);
   const [symbol, setSymbol] = useState("BTC");
+  const [activeModel, setActiveModel] = useState<string>("");
   const [portfolioVersion, setPortfolioVersion] = useState(0);
   const itemsRef = useRef<ChatItem[]>([]);
   const runningRef = useRef(false);
@@ -39,6 +42,12 @@ export function useCopilot() {
     itemsRef.current = [...itemsRef.current, item];
     setItems(itemsRef.current);
   };
+
+  useEffect(() => {
+    const c = loadConfig();
+    const first = Object.keys(c.keys ?? {}).find((k) => c.keys[k]);
+    if (first) setActiveModel(`${first}/${c.models?.[first] || "default"}`);
+  }, []);
 
   const send = useCallback(async (text: string) => {
     if (runningRef.current || !text.trim()) return;
@@ -113,6 +122,71 @@ export function useCopilot() {
     }
   }, []);
 
+  const selectModel = useCallback((prov: string, id: string) => {
+    const c = loadConfig();
+    saveConfig({ ...c, keys: c.keys ?? {}, models: { ...(c.models ?? {}), [prov]: id } });
+    setActiveModel(`${prov}/${id}`);
+    push({ id: nid(), kind: "assistant", text: `Active model → ${prov}/${id}. I'll use it from the next message.` });
+  }, []);
+
+  const command = useCallback(async (text: string) => {
+    const cmd = text.trim().toLowerCase();
+    push({ id: nid(), kind: "user", text: text.trim() });
+
+    if (cmd === "/clear") {
+      itemsRef.current = [];
+      setItems([]);
+      setChips([]);
+      return;
+    }
+    if (cmd === "/help") {
+      push({
+        id: nid(),
+        kind: "assistant",
+        text: "Commands:\n/model — pick a model (live list)\n/clear — clear the chat\n/help — this\nOr just talk: “what can I buy with $500?”, “long BTC 200”, “show me the SOL chart”.",
+      });
+      return;
+    }
+    if (cmd === "/model" || cmd === "/models") {
+      const c = loadConfig();
+      const keyed = Object.keys(c.keys ?? {}).filter((k) => c.keys[k]);
+      if (!keyed.length) {
+        push({
+          id: nid(),
+          kind: "assistant",
+          text: "No API key set yet — add one in Settings (⚙), then /model lists live models.",
+        });
+        return;
+      }
+      setRunning(true);
+      try {
+        const options: { provider: string; id: string }[] = [];
+        for (const p of keyed) {
+          try {
+            const r = await fetch("/api/models", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ provider: p, key: c.keys[p] }),
+            });
+            const j = await r.json();
+            if (j.models?.length) for (const m of j.models.slice(0, 60)) options.push({ provider: p, id: m.id });
+          } catch {
+            /* skip provider */
+          }
+        }
+        if (!options.length) {
+          push({ id: nid(), kind: "assistant", text: "Couldn't load models — check your key in Settings." });
+        } else {
+          push({ id: nid(), kind: "models", options });
+        }
+      } finally {
+        setRunning(false);
+      }
+      return;
+    }
+    push({ id: nid(), kind: "assistant", text: `Unknown command "${text.trim()}". Try /model, /clear, /help.` });
+  }, []);
+
   const decide = useCallback(async (signalId: string, decision: "confirm" | "cancel") => {
     const res = await fetch("/api/execute", {
       method: "POST",
@@ -130,5 +204,17 @@ export function useCopilot() {
     setPortfolioVersion((v) => v + 1);
   }, []);
 
-  return { items, chips, running, provider, symbol, portfolioVersion, send, decide };
+  return {
+    items,
+    chips,
+    running,
+    provider,
+    symbol,
+    activeModel,
+    portfolioVersion,
+    send,
+    command,
+    selectModel,
+    decide,
+  };
 }

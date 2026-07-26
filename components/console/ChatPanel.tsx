@@ -90,14 +90,20 @@ export function ChatPanel({
   chips,
   running,
   provider,
+  activeModel,
   onSend,
+  onCommand,
+  onSelectModel,
   onDecide,
 }: {
   items: ChatItem[];
   chips: string[];
   running: boolean;
   provider: string | null;
+  activeModel: string;
   onSend: (text: string) => void;
+  onCommand: (text: string) => void;
+  onSelectModel: (provider: string, id: string) => void;
   onDecide: (id: string, d: "confirm" | "cancel") => void;
 }) {
   const [text, setText] = useState("");
@@ -108,9 +114,11 @@ export function ChatPanel({
   }, [items, running, chips]);
 
   const submit = () => {
-    if (!text.trim() || running) return;
-    onSend(text);
+    const t = text.trim();
+    if (!t || running) return;
     setText("");
+    if (t.startsWith("/")) onCommand(t);
+    else onSend(t);
   };
 
   return (
@@ -122,9 +130,9 @@ export function ChatPanel({
             your trading copilot
           </p>
         </div>
-        {provider && (
-          <span className="font-mono text-[9px] uppercase tracking-widest text-faint">
-            via {provider}
+        {(activeModel || provider) && (
+          <span className="max-w-[48%] truncate font-mono text-[9px] uppercase tracking-widest text-faint">
+            {activeModel || `via ${provider}`}
           </span>
         )}
       </header>
@@ -133,7 +141,9 @@ export function ChatPanel({
         {items.length === 0 && (
           <div className="mt-8 text-center">
             <p className="font-serif text-xl text-parchment">Ask the court.</p>
-            <p className="mt-2 text-sm text-muted">Try:</p>
+            <p className="mt-2 text-sm text-muted">
+              Try a prompt, or <span className="text-brass">/model</span> to pick a model:
+            </p>
             <div className="mt-4 flex flex-col items-center gap-2">
               {EXAMPLES.map((e) => (
                 <button
@@ -183,6 +193,28 @@ export function ChatPanel({
             return (
               <div key={it.id} className="docket-in">
                 <InlineChart symbol={it.symbol} interval={it.interval} />
+              </div>
+            );
+          if (it.kind === "models")
+            return (
+              <div key={it.id} className="docket-in keyline rounded bg-raised p-3">
+                <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+                  select a model · {it.options.length}
+                </p>
+                <div className="max-h-60 space-y-1 overflow-y-auto">
+                  {it.options.map((o) => (
+                    <button
+                      key={`${o.provider}/${o.id}`}
+                      onClick={() => onSelectModel(o.provider, o.id)}
+                      className="group flex w-full items-baseline justify-between gap-2 rounded px-2 py-1.5 text-left font-mono text-[11px] text-parchment transition-colors hover:bg-brass hover:text-ink"
+                    >
+                      <span className="truncate">{o.id}</span>
+                      <span className="shrink-0 text-[9px] uppercase tracking-widest text-faint group-hover:text-ink">
+                        {o.provider}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             );
           // proposal

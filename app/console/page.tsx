@@ -9,8 +9,19 @@ import { Ledger } from "@/components/console/Ledger";
 import { useCopilot } from "@/components/console/useCopilot";
 
 export default function ConsolePage() {
-  const { items, chips, running, provider, symbol, portfolioVersion, send, decide } =
-    useCopilot();
+  const {
+    items,
+    chips,
+    running,
+    provider,
+    symbol,
+    activeModel,
+    portfolioVersion,
+    send,
+    command,
+    selectModel,
+    decide,
+  } = useCopilot();
 
   return (
     <div className="flex h-screen flex-col bg-ink">
@@ -49,7 +60,10 @@ export default function ConsolePage() {
             chips={chips}
             running={running}
             provider={provider}
+            activeModel={activeModel}
             onSend={send}
+            onCommand={command}
+            onSelectModel={selectModel}
             onDecide={decide}
           />
         </Panel>
