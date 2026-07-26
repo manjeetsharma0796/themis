@@ -8,7 +8,8 @@ import { llmChat, llmChatStream, NoProvidersError } from "@/lib/llm/router";
 import { hasAnyKey, type RuntimeConfig } from "@/lib/llm/providers";
 import { TOOL_DEFS, executeTool, type ToolOutcome } from "@/lib/agent/tools";
 import { parseIntent } from "@/lib/agent/intent";
-import { setupMcp } from "@/lib/mcp/client";
+import { setupMcp, MCP_MGMT_TOOLS, MCP_MGMT_NAMES, executeMcpMgmt } from "@/lib/mcp/client";
+import { sandboxTools, SANDBOX_NAMES, executeSandbox } from "@/lib/sandbox/runner";
 import { acpTools, ACP_TOOL_NAMES, executeAcpTool } from "@/lib/acp/tools";
 
 export type ChatEvent =
@@ -114,7 +115,7 @@ export async function runCopilot(
   ];
 
   const mcp = await setupMcp(cfg?.mcpServers);
-  const tools = [...TOOL_DEFS, ...acpTools(), ...mcp.tools];
+  const tools = [...TOOL_DEFS, ...acpTools(), ...sandboxTools(), ...MCP_MGMT_TOOLS, ...mcp.tools];
 
   let announcedProvider = false;
   let lastAnswer = "";
@@ -149,11 +150,17 @@ export async function runCopilot(
 
       for (const tc of result.toolCalls) {
         emit({ type: "tool", name: tc.function.name, detail: summarizeArgs(tc.function.arguments) });
-        const outcome: ToolOutcome = ACP_TOOL_NAMES.has(tc.function.name)
-          ? { content: await executeAcpTool(tc.function.name, tc.function.arguments) }
-          : mcp.routes.has(tc.function.name)
-            ? { content: await mcp.call(tc.function.name, tc.function.arguments) }
-            : await executeTool(tc.function.name, tc.function.arguments);
+        const nm = tc.function.name;
+        const ar = tc.function.arguments;
+        const outcome: ToolOutcome = ACP_TOOL_NAMES.has(nm)
+          ? { content: await executeAcpTool(nm, ar) }
+          : SANDBOX_NAMES.has(nm)
+            ? { content: await executeSandbox(nm, ar) }
+            : MCP_MGMT_NAMES.has(nm)
+              ? { content: await executeMcpMgmt(nm, ar) }
+              : mcp.routes.has(nm)
+                ? { content: await mcp.call(nm, ar) }
+                : await executeTool(nm, ar);
         if (outcome.ui?.kind === "chart") {
           emit({ type: "chart", symbol: outcome.ui.symbol, interval: outcome.ui.interval });
         } else if (outcome.ui?.kind === "proposal") {
