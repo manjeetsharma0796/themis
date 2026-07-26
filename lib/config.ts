@@ -46,3 +46,11 @@ export function configForRequest(): ThemisConfig {
     mcpServers: c.mcpServers ?? [],
   };
 }
+
+const ONBOARDED = "themis.onboarded";
+export function isOnboarded(): boolean {
+  return typeof window !== "undefined" && localStorage.getItem(ONBOARDED) === "1";
+}
+export function markOnboarded(): void {
+  if (typeof window !== "undefined") localStorage.setItem(ONBOARDED, "1");
+}

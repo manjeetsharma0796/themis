@@ -1,12 +1,15 @@
 "use client";
 // The Themis console — copilot chat, live evidence chart, ledger. One court, one screen.
 // Panels are draggable: resize any split, layout persists via autoSaveId.
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ChatPanel } from "@/components/console/ChatPanel";
 import { CandleChart } from "@/components/console/CandleChart";
 import { Ledger } from "@/components/console/Ledger";
 import { useCopilot } from "@/components/console/useCopilot";
+import { isOnboarded } from "@/lib/config";
 
 export default function ConsolePage() {
   const {
@@ -22,6 +25,11 @@ export default function ConsolePage() {
     selectModel,
     decide,
   } = useCopilot();
+
+  const router = useRouter();
+  useEffect(() => {
+    if (!isOnboarded()) router.replace("/onboarding");
+  }, [router]);
 
   return (
     <div className="flex h-screen flex-col bg-ink">
