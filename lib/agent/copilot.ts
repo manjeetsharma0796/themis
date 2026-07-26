@@ -6,8 +6,9 @@ import type { ChatMessage } from "@/lib/llm/types";
 import type { Signal } from "@/lib/types";
 import { llmChat, NoProvidersError } from "@/lib/llm/router";
 import { hasAnyKey, type RuntimeConfig } from "@/lib/llm/providers";
-import { TOOL_DEFS, executeTool } from "@/lib/agent/tools";
+import { TOOL_DEFS, executeTool, type ToolOutcome } from "@/lib/agent/tools";
 import { parseIntent } from "@/lib/agent/intent";
+import { setupMcp } from "@/lib/mcp/client";
 
 export type ChatEvent =
   | { type: "provider"; provider: string }
@@ -99,12 +100,15 @@ export async function runCopilot(
     { role: "user", content: userText },
   ];
 
+  const mcp = await setupMcp(cfg?.mcpServers);
+  const tools = mcp.tools.length ? [...TOOL_DEFS, ...mcp.tools] : TOOL_DEFS;
+
   let announcedProvider = false;
   let lastAnswer = "";
 
   try {
     for (let round = 0; round < MAX_ROUNDS; round++) {
-      const result = await llmChat(messages, TOOL_DEFS, (a) => {
+      const result = await llmChat(messages, tools, (a) => {
         if (a.ok && !announcedProvider) {
           announcedProvider = true;
           emit({ type: "provider", provider: a.provider });
@@ -126,7 +130,9 @@ export async function runCopilot(
 
       for (const tc of result.toolCalls) {
         emit({ type: "tool", name: tc.function.name, detail: summarizeArgs(tc.function.arguments) });
-        const outcome = await executeTool(tc.function.name, tc.function.arguments);
+        const outcome: ToolOutcome = mcp.routes.has(tc.function.name)
+          ? { content: await mcp.call(tc.function.name, tc.function.arguments) }
+          : await executeTool(tc.function.name, tc.function.arguments);
         if (outcome.ui?.kind === "chart") {
           emit({ type: "chart", symbol: outcome.ui.symbol, interval: outcome.ui.interval });
         } else if (outcome.ui?.kind === "proposal") {
@@ -144,5 +150,7 @@ export async function runCopilot(
       message: err instanceof Error ? err.message : "the copilot hit an error",
     });
     emit({ type: "chips", items: DEFAULT_CHIPS });
+  } finally {
+    await mcp.close();
   }
 }

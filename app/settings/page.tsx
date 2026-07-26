@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { WalletCard } from "@/components/settings/WalletCard";
 import { KeyManager } from "@/components/settings/KeyManager";
+import { McpManager } from "@/components/settings/McpManager";
 
 export default function SettingsPage() {
   return (
@@ -23,6 +24,7 @@ export default function SettingsPage() {
       <main className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <WalletCard />
         <KeyManager />
+        <McpManager />
         <section className="keyline-soft rounded bg-surface p-5">
           <h3 className="font-serif text-lg font-medium">Telegram (remote)</h3>
           <p className="mt-1 text-xs leading-relaxed text-muted">

@@ -10,6 +10,7 @@
     "bot": "tsx bot/bot.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "grammy": "^1.45.1",
     "lightweight-charts": "^5.2.0",
     "next": "16.2.10",

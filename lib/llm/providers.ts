@@ -12,6 +12,7 @@ export type RuntimeConfig = {
   keys?: Record<string, string | undefined>;
   models?: Record<string, string | undefined>;
   order?: string[];
+  mcpServers?: { name: string; url: string }[];
 };
 
 type Reg = { baseUrl: string; envKey: string; envModel: string; defaultModel: string };
