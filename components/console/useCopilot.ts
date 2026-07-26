@@ -22,6 +22,8 @@ type ChatEvent =
   | { type: "chart"; symbol: string; interval: string }
   | { type: "proposal"; signal: Signal }
   | { type: "chips"; items: string[] }
+  | { type: "token"; text: string }
+  | { type: "endmsg" }
   | { type: "error"; message: string };
 
 let n = 0;
@@ -37,10 +39,28 @@ export function useCopilot() {
   const [portfolioVersion, setPortfolioVersion] = useState(0);
   const itemsRef = useRef<ChatItem[]>([]);
   const runningRef = useRef(false);
+  const activeIdRef = useRef<string | null>(null);
 
   const push = (item: ChatItem) => {
     itemsRef.current = [...itemsRef.current, item];
     setItems(itemsRef.current);
+  };
+
+  // Streaming: append a token to the active assistant bubble (created on first token).
+  const appendToken = (delta: string) => {
+    if (activeIdRef.current) {
+      itemsRef.current = itemsRef.current.map((i) =>
+        i.id === activeIdRef.current && i.kind === "assistant" ? { ...i, text: i.text + delta } : i
+      );
+    } else {
+      const id = nid();
+      activeIdRef.current = id;
+      itemsRef.current = [...itemsRef.current, { id, kind: "assistant", text: delta }];
+    }
+    setItems(itemsRef.current);
+  };
+  const sealActive = () => {
+    activeIdRef.current = null;
   };
 
   useEffect(() => {
@@ -54,6 +74,7 @@ export function useCopilot() {
     runningRef.current = true;
     setRunning(true);
     setChips([]);
+    activeIdRef.current = null;
     push({ id: nid(), kind: "user", text });
 
     const history = itemsRef.current
@@ -82,7 +103,14 @@ export function useCopilot() {
           const data = chunk.replace(/^data: /, "").trim();
           if (!data || data === "[DONE]") continue;
           const ev = JSON.parse(data) as ChatEvent;
+          if (ev.type === "token") {
+            appendToken(ev.text);
+            continue;
+          }
+          sealActive();
           switch (ev.type) {
+            case "endmsg":
+              break;
             case "provider":
               setProvider(ev.provider);
               break;
@@ -117,6 +145,7 @@ export function useCopilot() {
         error: true,
       });
     } finally {
+      sealActive();
       runningRef.current = false;
       setRunning(false);
     }

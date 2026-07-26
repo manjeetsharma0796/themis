@@ -4,7 +4,7 @@
 // no LLM keys are configured, so the app always works.
 import type { ChatMessage } from "@/lib/llm/types";
 import type { Signal } from "@/lib/types";
-import { llmChat, NoProvidersError } from "@/lib/llm/router";
+import { llmChat, llmChatStream, NoProvidersError } from "@/lib/llm/router";
 import { hasAnyKey, type RuntimeConfig } from "@/lib/llm/providers";
 import { TOOL_DEFS, executeTool, type ToolOutcome } from "@/lib/agent/tools";
 import { parseIntent } from "@/lib/agent/intent";
@@ -18,6 +18,8 @@ export type ChatEvent =
   | { type: "chart"; symbol: string; interval: string }
   | { type: "proposal"; signal: Signal }
   | { type: "chips"; items: string[] }
+  | { type: "token"; text: string }
+  | { type: "endmsg" }
   | { type: "error"; message: string };
 
 const SYSTEM = `You are Themis — a sharp, proactive crypto trading copilot. You help the user read markets and act on them.
@@ -119,17 +121,23 @@ export async function runCopilot(
 
   try {
     for (let round = 0; round < MAX_ROUNDS; round++) {
-      const result = await llmChat(messages, tools, (a) => {
-        if (a.ok && !announcedProvider) {
-          announcedProvider = true;
-          emit({ type: "provider", provider: a.provider });
-        }
-      }, cfg);
+      const result = await llmChatStream(
+        messages,
+        tools,
+        {
+          onToken: (t) => emit({ type: "token", text: t }),
+          onAttempt: (a) => {
+            if (a.ok && !announcedProvider) {
+              announcedProvider = true;
+              emit({ type: "provider", provider: a.provider });
+            }
+          },
+        },
+        cfg
+      );
 
-      if (result.content) {
-        emit({ type: "say", text: result.content });
-        lastAnswer = result.content;
-      }
+      if (result.content) lastAnswer = result.content;
+      emit({ type: "endmsg" });
 
       messages.push({
         role: "assistant",
