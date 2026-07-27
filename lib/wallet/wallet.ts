@@ -24,6 +24,11 @@ export function getMappedAddress(): string | null {
   return typeof window !== "undefined" ? localStorage.getItem(MAP_KEY) : null;
 }
 
+/** Disconnect: forget the OKX mapping but keep the agent wallet (and its positions). */
+export function clearMapping(): void {
+  if (typeof window !== "undefined") localStorage.removeItem(MAP_KEY);
+}
+
 export function getOrCreateWallet(): Wallet {
   if (typeof window === "undefined") throw new Error("wallet is client-only");
   let pk = localStorage.getItem(PK_KEY) as `0x${string}` | null;
