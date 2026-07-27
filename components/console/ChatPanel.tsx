@@ -19,10 +19,12 @@ function RulingCard({
   signal,
   receipt,
   onDecide,
+  anchor,
 }: {
   signal: Signal;
   receipt?: string;
   onDecide: (id: string, d: "confirm" | "cancel") => void;
+  anchor?: "anchoring" | "anchored" | "skipped";
 }) {
   const v = signal.verdict;
   const tone =
@@ -82,7 +84,7 @@ function RulingCard({
           <p className="font-mono text-xs text-up">
             ✓ executed{receipt ? ` · receipt ${receipt.slice(0, 14)}…` : ""}
           </p>
-          {signal.anchorExplorer && (
+          {signal.anchorExplorer ? (
             <a
               href={signal.anchorExplorer}
               target="_blank"
@@ -91,7 +93,19 @@ function RulingCard({
             >
               ⛓ seal anchored on X Layer ↗
             </a>
-          )}
+          ) : anchor === "anchoring" ? (
+            <p className="flex items-center gap-1.5 font-mono text-[10px] text-brass">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brass" />
+              anchoring seal on OKX X Layer…
+            </p>
+          ) : anchor === "skipped" ? (
+            <a
+              href="/settings"
+              className="block font-mono text-[10px] text-down/90 hover:underline"
+            >
+              ⚠ seal not anchored — fund the agent wallet on X Layer ↗
+            </a>
+          ) : null}
         </div>
       )}
       {signal.status === "cancelled" && (
@@ -285,7 +299,12 @@ export function ChatPanel({
           // proposal
           return (
             <div key={it.id} className="docket-in">
-              <RulingCard signal={it.signal} receipt={it.position?.receipt} onDecide={onDecide} />
+              <RulingCard
+                signal={it.signal}
+                receipt={it.position?.receipt}
+                onDecide={onDecide}
+                anchor={it.anchor}
+              />
             </div>
           );
         })}

@@ -13,7 +13,13 @@ export type ChatItem =
   | { id: string; kind: "tool"; name: string; detail: string }
   | { id: string; kind: "toolresult"; name: string; output: string }
   | { id: string; kind: "chart"; symbol: string; interval: string }
-  | { id: string; kind: "proposal"; signal: Signal; position?: Position }
+  | {
+      id: string;
+      kind: "proposal";
+      signal: Signal;
+      position?: Position;
+      anchor?: "anchoring" | "anchored" | "skipped";
+    }
   | { id: string; kind: "models"; options: { provider: string; id: string }[] };
 
 type ChatEvent =
@@ -229,36 +235,51 @@ export function useCopilot() {
     });
     const json = (await res.json()) as { signal?: Signal; position?: Position; error?: string };
     if (!res.ok || !json.signal) return;
+    const sig = json.signal;
+    const willAnchor = decision === "confirm" && sig.status === "executed";
+    // Show "anchoring" the instant we execute; the server may already have anchored
+    // (ANCHOR_PRIVATE_KEY), in which case the tx link is present immediately.
+    const initialAnchor: "anchoring" | "anchored" | undefined = willAnchor
+      ? sig.anchorTx
+        ? "anchored"
+        : "anchoring"
+      : undefined;
     itemsRef.current = itemsRef.current.map((i) =>
       i.kind === "proposal" && i.signal.id === signalId
-        ? { ...i, signal: json.signal!, position: json.position }
+        ? { ...i, signal: sig, position: json.position, anchor: initialAnchor }
         : i
     );
     setItems(itemsRef.current);
     setPortfolioVersion((v) => v + 1);
 
-    // A: anchor the seal on X Layer with the funded browser wallet (unless already server-anchored).
-    const sig = json.signal;
-    if (decision === "confirm" && sig.status === "executed" && !sig.anchorTx) {
+    // Client-anchor with the persistent agent wallet only if the server didn't.
+    if (willAnchor && !sig.anchorTx) {
+      let done: { txHash: string; explorer: string } | null = null;
       try {
         const { anchorSealOnChain } = await import("@/lib/wallet/anchorClient");
-        const anchor = await anchorSealOnChain(sig.commitHash);
-        if (anchor) {
+        done = await anchorSealOnChain(sig.commitHash);
+        if (done) {
           await fetch("/api/signals/anchor", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: signalId, txHash: anchor.txHash, explorer: anchor.explorer }),
+            body: JSON.stringify({ id: signalId, txHash: done.txHash, explorer: done.explorer }),
           });
-          itemsRef.current = itemsRef.current.map((i) =>
-            i.kind === "proposal" && i.signal.id === signalId
-              ? { ...i, signal: { ...i.signal, anchorTx: anchor.txHash, anchorExplorer: anchor.explorer } }
-              : i
-          );
-          setItems(itemsRef.current);
         }
       } catch {
-        /* insufficient funds / wallet issue — keep the paper receipt, skip anchoring */
+        done = null; // insufficient funds / RPC issue — surfaced as "skipped" below
       }
+      itemsRef.current = itemsRef.current.map((i) =>
+        i.kind === "proposal" && i.signal.id === signalId
+          ? done
+            ? {
+                ...i,
+                anchor: "anchored" as const,
+                signal: { ...i.signal, anchorTx: done.txHash, anchorExplorer: done.explorer },
+              }
+            : { ...i, anchor: "skipped" as const }
+          : i
+      );
+      setItems(itemsRef.current);
     }
   }, []);
 

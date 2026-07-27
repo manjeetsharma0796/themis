@@ -2,7 +2,7 @@
 // carrying the verdict's keccak256 seal in calldata, on X Layer testnet (1952).
 // The tx permanently records the seal; its hash links to the explorer.
 import { createWalletClient, http, type Hex } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { xlayerTestnet } from "@/lib/chain/xlayer";
 
 const PK_KEY = "themis.wallet.pk";
@@ -11,8 +11,13 @@ export async function anchorSealOnChain(
   hash: string
 ): Promise<{ txHash: string; explorer: string } | null> {
   if (typeof window === "undefined") return null;
-  const pk = localStorage.getItem(PK_KEY) as Hex | null;
-  if (!pk) return null;
+  // Reuse the persistent agent wallet; create it here if the user reached execute
+  // without visiting the wallet card, so a failure can only mean "unfunded".
+  let pk = localStorage.getItem(PK_KEY) as Hex | null;
+  if (!pk) {
+    pk = generatePrivateKey();
+    localStorage.setItem(PK_KEY, pk);
+  }
 
   const account = privateKeyToAccount(pk);
   const client = createWalletClient({ account, chain: xlayerTestnet, transport: http() });

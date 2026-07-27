@@ -9,6 +9,10 @@ import { readTelegram, writeTelegram, clearTelegram } from "@/lib/telegram/store
 export const runtime = "nodejs";
 
 function originOf(req: Request): string {
+  // Always prefer the stable production domain so the webhook survives new deploys
+  // — even if the user connected while viewing a one-off deployment preview URL.
+  const prod = process.env.PUBLIC_BASE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (prod) return prod.startsWith("http") ? prod : `https://${prod}`;
   const proto = req.headers.get("x-forwarded-proto") ?? "https";
   const host = req.headers.get("host");
   return host ? `${proto}://${host}` : new URL(req.url).origin;
