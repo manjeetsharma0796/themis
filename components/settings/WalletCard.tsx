@@ -1,50 +1,20 @@
 "use client";
-// Frictionless wallet — auto-created on first view, funded by QR, balance on X Layer.
-import { useCallback, useEffect, useState } from "react";
+// Settings wallet card, powered by wagmi (via useAgentWallet). Shows the agent
+// wallet (address, QR, live OKB balance), syncs it to your OKX wallet, or resets it.
+import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { getOrCreateWallet, resetWallet, getMappedAddress } from "@/lib/wallet/wallet";
-import { connectAndDeriveAgent } from "@/lib/wallet/injected";
+import { resetWallet } from "@/lib/wallet/wallet";
+import { useAgentWallet } from "@/lib/wallet/useAgentWallet";
 
 export function WalletCard({ compact = false }: { compact?: boolean }) {
-  const [address, setAddress] = useState<string | null>(null);
-  const [balance, setBalance] = useState<string | null>(null);
-  const [mapped, setMapped] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
+  const { agentAddress, mapped, balance, busy, error, connectAndSync, ensure, refresh } = useAgentWallet();
   const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const refresh = useCallback(async (addr: string) => {
-    setLoading(true);
-    try {
-      const r = await fetch(`/api/wallet/balance?address=${addr}`);
-      const j = await r.json();
-      setBalance(typeof j.balance === "string" ? j.balance : "0");
-    } catch {
-      setBalance("0");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
-    const w = getOrCreateWallet();
-    setAddress(w.address);
-    setMapped(getMappedAddress());
-    void refresh(w.address);
-  }, [refresh]);
+    ensure(); // Settings always shows a wallet — create a local one if none exists
+  }, [ensure]);
 
-  const sync = async () => {
-    setSyncing(true);
-    const r = await connectAndDeriveAgent();
-    setSyncing(false);
-    if ("error" in r) return;
-    setAddress(r.agentAddress);
-    setMapped(r.userAddress);
-    void refresh(r.agentAddress);
-  };
-
-  if (!address) return null;
-  const short = `${address.slice(0, 6)}…${address.slice(-4)}`;
+  if (!agentAddress) return null;
 
   return (
     <section className="keyline-soft rounded bg-surface p-5">
@@ -62,10 +32,10 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3 rounded bg-ink px-3 py-2">
-        <code className="truncate font-mono text-xs text-parchment">{address}</code>
+        <code className="truncate font-mono text-xs text-parchment">{agentAddress}</code>
         <button
           onClick={() => {
-            navigator.clipboard?.writeText(address);
+            navigator.clipboard?.writeText(agentAddress);
             setCopied(true);
             setTimeout(() => setCopied(false), 1200);
           }}
@@ -77,7 +47,7 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
 
       {!compact && (
         <div className="mt-4 flex justify-center rounded bg-parchment/95 p-3">
-          <QRCodeSVG value={address} size={140} bgColor="transparent" fgColor="#0a0d13" />
+          <QRCodeSVG value={agentAddress} size={140} bgColor="transparent" fgColor="#0a0d13" />
         </div>
       )}
 
@@ -85,16 +55,14 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
         <div>
           <p className="font-mono text-[10px] uppercase tracking-widest text-faint">balance</p>
           <p className="font-mono text-2xl text-parchment">
-            {balance === null ? "…" : Number(balance).toFixed(4)}{" "}
-            <span className="text-sm text-muted">OKB</span>
+            {balance === null ? "…" : Number(balance).toFixed(4)} <span className="text-sm text-muted">OKB</span>
           </p>
         </div>
         <button
-          onClick={() => void refresh(address)}
-          disabled={loading}
-          className="keyline-soft rounded px-3 py-1.5 font-mono text-[11px] text-muted transition-colors hover:text-brass disabled:opacity-50"
+          onClick={refresh}
+          className="keyline-soft rounded px-3 py-1.5 font-mono text-[11px] text-muted transition-colors hover:text-brass"
         >
-          {loading ? "checking…" : "I've funded it · refresh"}
+          I&apos;ve funded it · refresh
         </button>
       </div>
 
@@ -108,16 +76,16 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
         >
           X Layer faucet
         </a>
-        , then refresh. Key is generated on this device and never leaves it.
+        , then refresh. The key is derived on this device and never leaves it.
       </p>
 
       {!compact && (
         <button
-          onClick={sync}
-          disabled={syncing}
+          onClick={connectAndSync}
+          disabled={busy}
           className="mt-3 mr-4 font-mono text-[10px] text-faint transition-colors hover:text-brass disabled:opacity-50"
         >
-          {syncing
+          {busy
             ? "waiting for signature…"
             : mapped
               ? "↻ re-sync agent with wallet"
@@ -130,9 +98,7 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
           onClick={() => {
             if (confirm("Reset wallet? The current key is erased from this device.")) {
               resetWallet();
-              const w = getOrCreateWallet();
-              setAddress(w.address);
-              void refresh(w.address);
+              window.location.reload();
             }
           }}
           className="mt-3 font-mono text-[10px] text-faint transition-colors hover:text-down"
@@ -140,6 +106,8 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
           reset wallet
         </button>
       )}
+
+      {error && error !== "no-wallet" && <p className="mt-2 font-mono text-[10px] text-down">{error}</p>}
     </section>
   );
 }

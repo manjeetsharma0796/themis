@@ -1,69 +1,23 @@
 "use client";
-// Onboarding wallet step. Preferred path: connect your wallet → sign once → the
-// agent wallet is derived from that signature and mapped to you, so it's the same
-// on every device. Fallback: a device-local random agent wallet. No auto-create
-// on mount — the user chooses.
-import { useCallback, useEffect, useState } from "react";
+// Onboarding wallet step, powered by wagmi (via useAgentWallet). Preferred path:
+// connect your wallet → sign once → the agent wallet is derived + mapped to you,
+// the same on every device. Fallback: a device-local random agent wallet.
+import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { getOrCreateWallet, getWalletAddress, getMappedAddress } from "@/lib/wallet/wallet";
-import { connectAndDeriveAgent } from "@/lib/wallet/injected";
+import { useAgentWallet } from "@/lib/wallet/useAgentWallet";
+
+const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export function WalletSetup({ onReady }: { onReady?: (address: string) => void }) {
-  const [address, setAddress] = useState<string | null>(null);
-  const [mapped, setMapped] = useState<string | null>(null);
-  const [balance, setBalance] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const { agentAddress, mapped, balance, busy, error, connectAndSync, useLocal } = useAgentWallet();
   const [copied, setCopied] = useState(false);
 
-  const refresh = useCallback(async (addr: string) => {
-    try {
-      const r = await fetch(`/api/wallet/balance?address=${addr}`);
-      const j = await r.json();
-      setBalance(typeof j.balance === "string" ? j.balance : "0");
-    } catch {
-      setBalance("0");
-    }
-  }, []);
-
-  // Reflect an existing wallet, but do NOT auto-create — let the user choose.
   useEffect(() => {
-    const a = getWalletAddress();
-    if (a) {
-      setAddress(a);
-      setMapped(getMappedAddress());
-      void refresh(a);
-      onReady?.(a);
-    }
-  }, [refresh, onReady]);
-
-  const sync = async () => {
-    setBusy(true);
-    setErr(null);
-    const r = await connectAndDeriveAgent();
-    setBusy(false);
-    if ("error" in r) {
-      setErr(r.error);
-      return;
-    }
-    setAddress(r.agentAddress);
-    setMapped(r.userAddress);
-    void refresh(r.agentAddress);
-    onReady?.(r.agentAddress);
-  };
-
-  const useLocal = () => {
-    const w = getOrCreateWallet();
-    setAddress(w.address);
-    setMapped(null);
-    void refresh(w.address);
-    onReady?.(w.address);
-  };
-
-  const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+    if (agentAddress) onReady?.(agentAddress);
+  }, [agentAddress, onReady]);
 
   // ── no wallet yet → offer the two paths ──────────────────────
-  if (!address) {
+  if (!agentAddress) {
     return (
       <section className="keyline-soft rounded bg-surface p-5">
         <h3 className="font-serif text-lg font-medium">Set up your agent wallet</h3>
@@ -73,15 +27,15 @@ export function WalletSetup({ onReady }: { onReady?: (address: string) => void }
         </p>
 
         <button
-          onClick={sync}
+          onClick={connectAndSync}
           disabled={busy}
           className="mt-4 w-full rounded bg-brass px-4 py-2.5 font-mono text-sm font-semibold text-ink transition-transform hover:-translate-y-px disabled:opacity-50"
         >
           {busy ? "waiting for signature…" : "Connect wallet & sync agent"}
         </button>
 
-        {err &&
-          (err === "no-wallet" ? (
+        {error &&
+          (error === "no-wallet" ? (
             <a
               href="https://web3.okx.com/download"
               target="_blank"
@@ -91,7 +45,7 @@ export function WalletSetup({ onReady }: { onReady?: (address: string) => void }
               install OKX Wallet ↗
             </a>
           ) : (
-            <p className="mt-2 text-center font-mono text-[10px] text-down">{err}</p>
+            <p className="mt-2 text-center font-mono text-[10px] text-down">{error}</p>
           ))}
 
         <button
@@ -119,10 +73,10 @@ export function WalletSetup({ onReady }: { onReady?: (address: string) => void }
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3 rounded bg-ink px-3 py-2">
-        <code className="truncate font-mono text-xs text-parchment">{address}</code>
+        <code className="truncate font-mono text-xs text-parchment">{agentAddress}</code>
         <button
           onClick={() => {
-            navigator.clipboard?.writeText(address);
+            navigator.clipboard?.writeText(agentAddress);
             setCopied(true);
             setTimeout(() => setCopied(false), 1200);
           }}
@@ -133,7 +87,7 @@ export function WalletSetup({ onReady }: { onReady?: (address: string) => void }
       </div>
 
       <div className="mt-4 flex justify-center rounded bg-parchment/95 p-3">
-        <QRCodeSVG value={address} size={128} bgColor="transparent" fgColor="#0a0d13" />
+        <QRCodeSVG value={agentAddress} size={128} bgColor="transparent" fgColor="#0a0d13" />
       </div>
 
       <div className="mt-4 flex items-end justify-between">
@@ -155,13 +109,14 @@ export function WalletSetup({ onReady }: { onReady?: (address: string) => void }
 
       {!mapped && (
         <button
-          onClick={sync}
+          onClick={connectAndSync}
           disabled={busy}
           className="mt-3 font-mono text-[10px] text-faint transition-colors hover:text-brass disabled:opacity-50"
         >
           {busy ? "waiting for signature…" : "↻ connect wallet to sync across devices"}
         </button>
       )}
+      {error && error !== "no-wallet" && <p className="mt-2 font-mono text-[10px] text-down">{error}</p>}
     </section>
   );
 }
