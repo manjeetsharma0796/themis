@@ -4,7 +4,7 @@
 //   · X-PAYMENT present   → decode → verify → settle (facilitator when live,
 //                           labelled demo otherwise) → sealed verdict + X-PAYMENT-RESPONSE
 //   · ?tier=free          → ruling + confidence + commit hash only (free tier)
-import { listSignals } from "@/lib/agent/run";
+import { executeTool } from "@/lib/agent/tools";
 import { x402Config } from "@/lib/x402/config";
 import {
   buildRequirements,
@@ -25,9 +25,21 @@ export async function GET(req: Request) {
   const free = url.searchParams.get("tier") === "free";
   const cfg = x402Config();
 
-  const latest = (await listSignals()).find((s) => s.status !== "cancelled");
+  // A2MCP service: convene the tribunal on the CALLER'S intent (symbol/side/size),
+  // sealing a fresh verdict per call — not replaying the last stored signal.
+  const symbol = (url.searchParams.get("symbol") ?? "BTC").toUpperCase();
+  const side = url.searchParams.get("side") === "short" ? "short" : "long";
+  const sizeUsd = Math.max(1, Math.min(Number(url.searchParams.get("sizeUsd")) || 100, 5000));
+  const outcome = await executeTool(
+    "convene_tribunal",
+    JSON.stringify({ symbol, side, sizeUsd })
+  );
+  const latest = outcome.ui?.kind === "proposal" ? outcome.ui.signal : null;
   if (!latest) {
-    return Response.json({ error: "no signals issued yet" }, { status: 404 });
+    return Response.json(
+      { error: outcome.content || "could not convene the tribunal" },
+      { status: 400 }
+    );
   }
 
   if (free) {

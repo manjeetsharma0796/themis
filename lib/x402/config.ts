@@ -14,12 +14,18 @@ export type X402Config = {
   live: boolean; // true only when a real facilitator + payTo + asset are all present
 };
 
+// Only trust the env override if it's a real X Layer CAIP-2 (testnet 1952 / mainnet
+// 196). A stale "eip155:195" (a deprecated id) falls back to the correct chain.
+function validNetwork(env?: string): string {
+  return env && /^eip155:(1952|196)$/.test(env) ? env : XLAYER_CAIP2;
+}
+
 export function x402Config(): X402Config {
   const asset = process.env.X402_ASSET ?? "";
   const payTo = process.env.X402_PAY_TO ?? "";
   const facilitatorUrl = process.env.X402_FACILITATOR_URL ?? null;
   return {
-    network: process.env.X402_NETWORK ?? XLAYER_CAIP2,
+    network: validNetwork(process.env.X402_NETWORK),
     asset,
     payTo,
     assetName: process.env.X402_ASSET_NAME ?? "USDT",
