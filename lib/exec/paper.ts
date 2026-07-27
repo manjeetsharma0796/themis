@@ -3,7 +3,7 @@
 import { keccak256, toHex } from "viem";
 import type { PortfolioView, Position, Side, Signal } from "@/lib/types";
 import { readJson, writeJson } from "@/lib/store";
-import { getTicker } from "@/lib/market/okx";
+import { getTicker, getFillQuote } from "@/lib/market/okx";
 
 const EQUITY_START = 10_000;
 
@@ -16,16 +16,21 @@ async function savePositions(p: Position[]): Promise<void> {
 }
 
 export async function openPosition(signal: Signal): Promise<Position> {
-  const { price } = await getTicker(signal.intent.symbol);
   const sizeUsd = signal.verdict.sizeUsd;
+  const side = signal.intent.side as Side;
+  // Honest fills: walk the live book for `sizeUsd` so entry reflects real depth.
+  // Fall back to last price only if the book feed is unavailable at fill time.
+  const quote = await getFillQuote(signal.intent.symbol, side, sizeUsd).catch(() => null);
+  const price = quote?.avgPrice ?? (await getTicker(signal.intent.symbol)).price;
   const position: Position = {
     id: `pos_${signal.id}`,
     signalId: signal.id,
     symbol: signal.intent.symbol,
-    side: signal.intent.side as Side,
+    side,
     sizeUsd,
     qty: sizeUsd / price,
     entryPrice: price,
+    slippagePct: quote?.slippagePct,
     openedAt: Date.now(),
     status: "open",
     closedAt: null,

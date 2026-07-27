@@ -21,7 +21,19 @@ export type MarketSnapshot = {
   atr14: number;
   atrPct: number; // atr as % of price
   trend: "up" | "down" | "flat";
+  book?: BookEvidence | null; // live order-book read, when available
   ts: number;
+};
+
+// Order-book evidence the tribunal reads and the judge weighs.
+export type BookEvidence = {
+  spreadPct: number; // bid/ask spread as % of mid
+  bidDepthUsd: number; // resting bid liquidity within 1% of mid
+  askDepthUsd: number; // resting ask liquidity within 1% of mid
+  imbalance: number; // -1..1, positive = bid-heavy (buy-side support)
+  topWall: { price: number; usd: number; side: "bid" | "ask" } | null;
+  slippagePct: number; // depth-weighted slippage to fill the intent size
+  thin: boolean; // book too shallow to fill the size cleanly
 };
 
 export type TribunalLine = {
@@ -58,7 +70,8 @@ export type Position = {
   side: Side;
   sizeUsd: number;
   qty: number;
-  entryPrice: number;
+  entryPrice: number; // depth-weighted fill price (walks the live book)
+  slippagePct?: number; // cost vs best price from walking the book
   openedAt: number;
   status: "open" | "closed";
   closedAt: number | null;

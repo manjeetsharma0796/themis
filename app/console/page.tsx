@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ChatPanel } from "@/components/console/ChatPanel";
-import { CandleChart } from "@/components/console/CandleChart";
+import { MarketPanel } from "@/components/console/MarketPanel";
 import { Ledger } from "@/components/console/Ledger";
 import { useCopilot } from "@/components/console/useCopilot";
 import { isOnboarded } from "@/lib/config";
@@ -81,7 +81,7 @@ export default function ConsolePage() {
         <PanelResizeHandle />
 
         <Panel defaultSize={40} minSize={26} className="overflow-hidden">
-          <CandleChart symbol={symbol} />
+          <MarketPanel symbol={symbol} />
         </Panel>
 
         <PanelResizeHandle />

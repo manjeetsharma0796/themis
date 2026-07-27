@@ -1,7 +1,7 @@
 // Plain-math indicators computed from candles — no dependencies
 import type { Candle } from "@/lib/market/okx";
-import type { MarketSnapshot } from "@/lib/types";
-import { getCandles, getTicker } from "@/lib/market/okx";
+import type { BookEvidence, MarketSnapshot, Side } from "@/lib/types";
+import { getCandles, getTicker, getOrderBook, bookMetrics, fillFromBook } from "@/lib/market/okx";
 
 export function ema(values: number[], period: number): number {
   if (values.length === 0) return 0;
@@ -49,10 +49,37 @@ export function atr(candles: Candle[], period = 14): number {
   return ema(trs, period);
 }
 
-export async function buildSnapshot(symbol: string): Promise<MarketSnapshot> {
-  const [ticker, candles] = await Promise.all([
+/** Read the live book into tribunal evidence for an intent of `sizeUsd` on `side`. */
+async function readBook(symbol: string, side: Side, sizeUsd: number): Promise<BookEvidence | null> {
+  try {
+    const book = await getOrderBook(symbol, 50);
+    const m = bookMetrics(book);
+    if (!m) return null;
+    const fill = fillFromBook(book, side, Math.max(sizeUsd, 50));
+    const slippagePct = fill?.slippagePct ?? 0;
+    return {
+      spreadPct: m.spreadPct,
+      bidDepthUsd: m.bidDepthUsd,
+      askDepthUsd: m.askDepthUsd,
+      imbalance: m.imbalance,
+      topWall: m.topWall,
+      slippagePct,
+      thin: (fill?.exhausted ?? false) || slippagePct > 0.8,
+    };
+  } catch {
+    return null; // book feed hiccup — the tribunal falls back to price evidence
+  }
+}
+
+export async function buildSnapshot(
+  symbol: string,
+  side: Side = "long",
+  sizeUsd = 100
+): Promise<MarketSnapshot> {
+  const [ticker, candles, book] = await Promise.all([
     getTicker(symbol),
     getCandles(symbol, "60", 120),
+    readBook(symbol, side, sizeUsd),
   ]);
   const closes = candles.map((c) => c.close);
   const e20 = ema(closes, 20);
@@ -70,6 +97,7 @@ export async function buildSnapshot(symbol: string): Promise<MarketSnapshot> {
     atr14: a,
     atrPct: (a / ticker.price) * 100,
     trend: spread > 0.001 ? "up" : spread < -0.001 ? "down" : "flat",
+    book,
     ts: Date.now(),
   };
 }

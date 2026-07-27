@@ -113,11 +113,14 @@ export async function executeTool(name: string, rawArgs: string): Promise<ToolOu
       const sym = String(args.symbol ?? "").toUpperCase();
       if (!SUPPORTED.includes(sym)) return unsupported(sym);
       const s = await buildSnapshot(sym);
+      const bookLine = s.book
+        ? ` Book: spread ${s.book.spreadPct.toFixed(3)}%, ±1% depth $${(s.book.bidDepthUsd / 1000).toFixed(1)}K bid / $${(s.book.askDepthUsd / 1000).toFixed(1)}K ask, ${s.book.imbalance >= 0 ? "bid" : "ask"}-heavy ${Math.abs(s.book.imbalance * 100).toFixed(0)}%${s.book.topWall ? `, top wall $${(s.book.topWall.usd / 1000).toFixed(0)}K ${s.book.topWall.side} @ ${s.book.topWall.price.toLocaleString()}` : ""}.`
+        : "";
       return {
         content:
           `${s.symbol}: price ${s.price.toLocaleString()}, 24h ${s.chg24hPct.toFixed(2)}%, ` +
           `RSI ${s.rsi14.toFixed(0)}, EMA20 ${s.ema20.toFixed(2)} vs EMA50 ${s.ema50.toFixed(2)}, ` +
-          `ATR ${s.atrPct.toFixed(2)}%, trend ${s.trend}.`,
+          `ATR ${s.atrPct.toFixed(2)}%, trend ${s.trend}.` + bookLine,
       };
     }
 
@@ -164,7 +167,7 @@ export async function executeTool(name: string, rawArgs: string): Promise<ToolOu
       const side: Side = args.side === "short" ? "short" : "long";
       const size = Math.max(1, Math.min(Number(args.sizeUsd) || 100, 5000));
       const intent: Intent = { action: "trade", symbol: sym, side, sizeUsd: size, raw: `${side} ${sym} ${size}` };
-      const snapshot = await buildSnapshot(sym);
+      const snapshot = await buildSnapshot(sym, side, size);
       const adv = advocate(intent, snapshot);
       const skp = skeptic(intent, snapshot);
       const verdict = judge(intent, snapshot);

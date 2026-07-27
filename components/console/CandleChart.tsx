@@ -1,8 +1,9 @@
 "use client";
-// The evidence — live hourly candles for the symbol before the court.
+// The candlestick evidence — live OKX candles for the symbol before the court.
+// Headerless: MarketPanel owns the token/interval controls above it.
 // Colors are the validated polarity pair (#2E9E74 up / #E5484D down);
 // grid and axes stay recessive per the chart doctrine.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   CandlestickSeries,
   createChart,
@@ -11,10 +12,9 @@ import {
 } from "lightweight-charts";
 import type { Candle } from "@/lib/market/okx";
 
-export function CandleChart({ symbol }: { symbol: string }) {
+export function CandleChart({ symbol, interval = "60" }: { symbol: string; interval?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const [last, setLast] = useState<{ price: number; up: boolean } | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -52,10 +52,10 @@ export function CandleChart({ symbol }: { symbol: string }) {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch(`/api/market/candles?symbol=${symbol}&interval=60`);
+        const res = await fetch(`/api/market/candles?symbol=${symbol}&interval=${interval}`);
         if (!res.ok) return;
         const candles = (await res.json()) as Candle[];
-        if (cancelled || candles.length === 0) return;
+        if (cancelled || !Array.isArray(candles) || candles.length === 0) return;
         series.setData(
           candles.map((c) => ({
             time: c.time as UTCTimestamp,
@@ -65,8 +65,6 @@ export function CandleChart({ symbol }: { symbol: string }) {
             close: c.close,
           }))
         );
-        const tail = candles[candles.length - 1];
-        setLast({ price: tail.close, up: tail.close >= tail.open });
         chart.timeScale().fitContent();
       } catch {
         /* feed hiccup — keep the last picture */
@@ -81,24 +79,7 @@ export function CandleChart({ symbol }: { symbol: string }) {
       chart.remove();
       chartRef.current = null;
     };
-  }, [symbol]);
+  }, [symbol, interval]);
 
-  return (
-    <section className="keyline-soft flex h-full min-h-0 flex-col rounded bg-surface">
-      <header className="flex items-baseline justify-between border-b border-hairline-soft px-4 py-3">
-        <div>
-          <h2 className="font-serif text-lg">The evidence</h2>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-faint">
-            {symbol}/USDT · 1h · okx live
-          </p>
-        </div>
-        {last && (
-          <span className={`font-mono text-sm ${last.up ? "text-up" : "text-down"}`}>
-            {last.price.toLocaleString("en-US", { maximumFractionDigits: 2 })}
-          </span>
-        )}
-      </header>
-      <div ref={containerRef} className="min-h-0 flex-1" />
-    </section>
-  );
+  return <div ref={containerRef} className="h-full min-h-0 w-full" />;
 }

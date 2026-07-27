@@ -47,12 +47,20 @@ export async function runAgent(
 
   emit({ type: "step", label: "Gathering evidence" });
   emit({ type: "tool", name: "get_ticker", detail: `${intent.symbol} · OKX live` });
-  const snapshot = await buildSnapshot(intent.symbol);
+  const snapshot = await buildSnapshot(intent.symbol, intent.side, intent.sizeUsd);
   emit({
     type: "tool",
     name: "get_indicators",
     detail: `price ${snapshot.price.toLocaleString()} · RSI ${snapshot.rsi14.toFixed(0)} · trend ${snapshot.trend} · ATR ${snapshot.atrPct.toFixed(2)}%`,
   });
+  if (snapshot.book) {
+    const k = (n: number) => `$${(n / 1000).toFixed(1)}K`;
+    emit({
+      type: "tool",
+      name: "read_orderbook",
+      detail: `spread ${snapshot.book.spreadPct.toFixed(3)}% · depth ±1% ${k(snapshot.book.bidDepthUsd)}/${k(snapshot.book.askDepthUsd)} · slippage ${snapshot.book.slippagePct.toFixed(2)}% on $${intent.sizeUsd}`,
+    });
+  }
   await sleep(pace);
 
   emit({ type: "step", label: "The tribunal convenes" });
