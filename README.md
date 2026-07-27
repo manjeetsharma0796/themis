@@ -1,4 +1,4 @@
-# Themis — the trade tribunal ⚖
+# Themis — the trade tribunal ⚖ 
 
 **Every trade deserves due process.** Themis is a conversational trading copilot that
 puts each decision on trial: an **advocate** argues your intent, a **skeptic** prosecutes
