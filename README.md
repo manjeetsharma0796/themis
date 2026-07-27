@@ -8,7 +8,7 @@ can never be quietly rewritten.
 
   
 Talk to it, or trade the chart by hand — either way, every fill lands on the same 
-tamper-evident, on-chain record.
+tamper-evident, on-chain record. 
 
 Built for the **OKX.AI Genesis Hackathon** · Live at **[trythemis.vercel.app](https://trythemis.vercel.app)**
 
