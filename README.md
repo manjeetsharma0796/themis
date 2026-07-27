@@ -11,7 +11,7 @@ tamper-evident, on-chain record.
 
 Built for the **OKX.AI Genesis Hackathon** · Live at **[trythemis.vercel.app](https://trythemis.vercel.app)**
 
-![Themis console — copilot, live OKX order book, manual trade ticket, sealed on-chain ledger](docs/img/console.png)
+![Themis on trythemis.vercel.app — the copilot's live SOL analysis, the OKX order book, and a ledger with a verdict anchored on X Layer](docs/img/console-live.png)
 
 ---
 
@@ -32,6 +32,12 @@ Themis makes an AI trading agent **provably honest**:
    verification fails.
 
 The result: a copilot whose reasoning and record you can audit, not just believe.
+
+> **See it on-chain.** A live sealed verdict, anchored on OKX X Layer:
+> [`0xe4d235…13b3f6`](https://www.oklink.com/x-layer-testnet/tx/0xe4d23516bae174534d52c6b82e4eb9093a3a0cf8b708b2d675407ad87d13b3f6)
+> — *Accepted on L2*, a 0 OKB self-transaction whose **input data is the verdict's seal hash**. Anyone can recompute it.
+
+![A Themis verdict anchored on OKX X Layer — the OKLink testnet explorer showing the seal hash in the transaction's input data](docs/img/anchor-oklink.png)
 
 ---
 
