@@ -15,7 +15,7 @@ Built for the **OKX.AI Genesis Hackathon** · Live at **[trythemis.vercel.app](h
 
 ---
 
-## The problem it solves
+## The problem it solves 
 
 AI trading agents are **unaccountable**. A bot can show you a beautiful win rate, but you
 can't tell if the losing calls were quietly deleted or the record was edited after the
