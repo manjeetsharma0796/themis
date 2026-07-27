@@ -64,10 +64,10 @@ The result: a copilot whose reasoning and record you can audit, not just believe
 - **Personal agent wallet** — derived from and mapped to the user's OKX wallet, so it's
   the *same wallet on every device* (one signature, no gas). Falls back to a device-local
   wallet.
-- **Telegram** — the **same LLM copilot** in chat, with per-conversation memory and
-  inline Execute / Dismiss buttons. Connect by pasting a bot token (serverless webhook).
-- **Sold to other agents** — verdicts are available per-call over **x402 / A2MCP**,
-  settled on X Layer.
+- **Telegram** — the **same LLM copilot** in chat: per-conversation memory, a `/model`
+  picker, and inline Execute / Dismiss. Connect by pasting a bot token (serverless webhook).
+- **Sold to other agents** — a **registered OKX.AI ASP (`#9836`)**: verdicts are sold
+  per-call over **x402 / A2MCP**, settled on X Layer.
 
 ---
 
@@ -80,7 +80,7 @@ Themis leans on the OKX stack end to end, from market data to settlement:
 | **OKX X Layer** (testnet, chain `1952`) | On-chain **seal anchoring** — the commit-reveal proof that the record wasn't doctored. OKB gas, OKLink explorer. | [`lib/chain/xlayer.ts`](lib/chain/xlayer.ts), [`lib/chain/anchor.ts`](lib/chain/anchor.ts), [`lib/wallet/anchorClient.ts`](lib/wallet/anchorClient.ts) |
 | **OKX Market Data** (v5 public API) | Live **candles, ticker, and order book** — the tribunal's evidence, the chart, and depth-weighted fills. No API key needed. | [`lib/market/okx.ts`](lib/market/okx.ts) |
 | **OKX Wallet** (via wagmi) | Connect + **derive the agent wallet**, mapped to your OKX wallet; wagmi handles EIP-6963 discovery, account/chain events, and X Layer switching. | [`lib/wallet/useAgentWallet.ts`](lib/wallet/useAgentWallet.ts), [`lib/wallet/wagmi.ts`](lib/wallet/wagmi.ts) |
-| **x402 / A2MCP** (Agentic Settlement) | Sell sealed verdicts to other agents **per-call**, settled on X Layer (`eip155:1952`). | [`lib/x402/*`](lib/x402), [`app/api/service/signal`](app/api/service/signal) |
+| **x402 / A2MCP** (Agentic Settlement) | **Registered ASP on OKX.AI — `#9836`** ("Sealed Trade Verdicts", 0.10 USDT/call). Sells verdicts to other agents per-call, settled on X Layer (`eip155:1952`). | [`lib/x402/*`](lib/x402), [`app/api/service/signal`](app/api/service/signal) |
 
 **Why this matters for agentic trading:** an agent that can *trade* is common; an agent
 whose every decision is **committed before execution and anchored on OKX X Layer** is
@@ -155,10 +155,18 @@ streaming + fallback · grammY (Telegram) · deployed on Vercel.
 
 ---
 
-## OKX.AI ASP submission
+## OKX.AI ASP — registered ✅
 
-1. `npx skills add okx/onchainos-skills --yes -g` · sign in to the Agentic Wallet
-2. Register + list `/api/service/signal` as an **A2MCP** ASP (review ≤ 24h)
-3. Set the assigned `X402_PAY_TO` + facilitator in the Vercel env → the endpoint settles
-   on X Layer for real
-4. `#OKXAI` post + ≤ 90s demo
+Themis is a live **Agent Service Provider on OKX.AI**, registered gasless via OKX Onchain OS:
+
+| | |
+|---|---|
+| **Agent ID** | `#9836` |
+| **ASP** | Themis Trade Tribunal |
+| **Service** | Sealed Trade Verdicts · **A2MCP** · 0.10 USDT/call |
+| **Endpoint** | `…/api/service/signal` (x402; free tier at `?tier=free`) |
+| **Network** | X Layer (`eip155:1952`) |
+
+To turn on real x402 settlement, set `X402_FACILITATOR_URL` + `X402_ASSET` (from OKX) alongside
+`X402_PAY_TO`; until then the paid tier runs in labelled demo mode (structurally validated, never
+faked as on-chain).
