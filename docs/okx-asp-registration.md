@@ -13,7 +13,7 @@ marketplace. This is the step-by-step to list it, plus the exact metadata to pas
 - An agent runtime that supports **Onchain OS** — **Claude Code** works (also Cursor/Codex/OpenClaw).
 - Themis deployed to a **public URL** (the A2MCP endpoint must be reachable for review).
   → Deploy to Vercel first: `vercel deploy` (or option B in chat). Your endpoint becomes
-  `https://<your-app>.vercel.app/api/service/signal`.
+  `https://trythemis.vercel.app/api/service/signal`.
 
 ## Steps (run the prompts inside your agent)
 1. **Install Onchain OS skills**
@@ -40,7 +40,7 @@ marketplace. This is the step-by-step to list it, plus the exact metadata to pas
 | **Name** | Themis — Verified Trade Tribunal |
 | **Type** | A2MCP (standardized, pay-per-call) |
 | **Short description** | Submit a trade intent; get an adversarial tribunal ruling (Advocate vs Skeptic, Judge) on live OKX market evidence — hash-sealed (commit-reveal) and anchored on X Layer. Provable, tamper-evident trading intelligence. |
-| **Endpoint** | `https://<your-app>.vercel.app/api/service/signal` |
+| **Endpoint** | `https://trythemis.vercel.app/api/service/signal` |
 | **Free tier** | `GET …/api/service/signal?tier=free` → ruling + confidence + commit hash |
 | **Paid call** | `GET …/api/service/signal` with `X-PAYMENT` (x402) → full transcript + evidence + sealed verdict + verify link |
 | **Price** | 0.10 USDT / call (x402 `exact` scheme) |

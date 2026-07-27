@@ -1,13 +1,13 @@
 import Link from "next/link";
 
-const CURL_402 = `$ curl https://themis.app/api/service/signal
+const CURL_402 = `$ curl https://trythemis.vercel.app/api/service/signal
 HTTP/1.1 402 Payment Required
 { "x402Version": 2, "accepts": [{ "scheme": "exact",
   "network": "eip155:1952", "amount": "100000",
   "asset": "0x…USDT", "payTo": "0x…asp",
   "resource": "/api/service/signal" }] }`;
 
-const CURL_PAID = `$ curl -H "X-PAYMENT: <eip3009-auth>" https://themis.app/api/service/signal
+const CURL_PAID = `$ curl -H "X-PAYMENT: <eip3009-auth>" https://trythemis.vercel.app/api/service/signal
 { "tier": "paid", "settlement": "onchain",
   "signal": { "verdict": { "ruling": "APPROVE", "confidence": 71 },
   "commitHash": "0x4be1…" }, "verify": "/api/verify/sig_mda31k2" }`;
