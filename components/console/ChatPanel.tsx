@@ -11,8 +11,11 @@ const EXAMPLES = ["What can I buy with $399?", "Show me the SOL chart", "I want 
 
 const SLASH = [
   { cmd: "/model", desc: "pick a model" },
-  { cmd: "/help", desc: "list commands" },
+  { cmd: "/balance", desc: "agent wallet balance" },
+  { cmd: "/wallet", desc: "wallet address" },
+  { cmd: "/fund", desc: "fund via faucet" },
   { cmd: "/clear", desc: "clear the chat" },
+  { cmd: "/help", desc: "list commands" },
 ];
 
 function RulingCard({

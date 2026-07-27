@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Position, Signal } from "@/lib/types";
 import { configForRequest, loadConfig, saveConfig } from "@/lib/config";
+import { getWalletAddress } from "@/lib/wallet/wallet";
 
 export type ChatItem =
   | { id: string; kind: "user"; text: string }
@@ -183,7 +184,7 @@ export function useCopilot() {
       push({
         id: nid(),
         kind: "assistant",
-        text: "Commands:\n/model — pick a model (live list)\n/clear — clear the chat\n/help — this\nOr just talk: “what can I buy with $500?”, “long BTC 200”, “show me the SOL chart”.",
+        text: "**Commands**\n/model — pick a model (live list)\n/balance — agent wallet balance (X Layer)\n/wallet — show wallet address\n/fund — fund it via the faucet\n/clear — clear the chat\n/help — this\n\nOr just talk: “what can I buy with $500?”, “long BTC 200”, “show me the SOL chart”.",
       });
       return;
     }
@@ -224,7 +225,61 @@ export function useCopilot() {
       }
       return;
     }
-    push({ id: nid(), kind: "assistant", text: `Unknown command "${text.trim()}". Try /model, /clear, /help.` });
+    if (cmd === "/balance") {
+      const addr = getWalletAddress();
+      if (!addr) {
+        push({ id: nid(), kind: "assistant", text: "No agent wallet yet — open **Settings** to create one." });
+        return;
+      }
+      setRunning(true);
+      try {
+        const r = await fetch(`/api/wallet/balance?address=${addr}`);
+        const j = await r.json();
+        const bal = typeof j.balance === "string" ? Number(j.balance) : 0;
+        push({
+          id: nid(),
+          kind: "assistant",
+          text:
+            `**Agent wallet** \`${addr.slice(0, 6)}…${addr.slice(-4)}\`\nBalance: **${bal.toFixed(4)} OKB** on X Layer testnet.` +
+            (bal === 0 ? "\n\nEmpty — run `/fund` to top it up so the agent can anchor seals on-chain." : ""),
+        });
+      } catch {
+        push({ id: nid(), kind: "assistant", text: "Couldn't reach the X Layer RPC — try again in a moment." });
+      } finally {
+        setRunning(false);
+      }
+      return;
+    }
+    if (cmd === "/wallet" || cmd === "/address") {
+      const addr = getWalletAddress();
+      push({
+        id: nid(),
+        kind: "assistant",
+        text: addr
+          ? `**Agent wallet** (X Layer testnet)\n\`${addr}\`\n\nBalance with \`/balance\`, top up with \`/fund\`.`
+          : "No agent wallet yet — open **Settings** to create one.",
+      });
+      return;
+    }
+    if (cmd === "/fund") {
+      const addr = getWalletAddress();
+      push({
+        id: nid(),
+        kind: "assistant",
+        text:
+          "**Fund your agent wallet** with testnet OKB:\n\n" +
+          "1. Open the [X Layer faucet](https://web3.okx.com/xlayer/faucet)\n" +
+          `2. Paste your address:\n\`${addr ?? "(open Settings to create a wallet first)"}\`\n` +
+          "3. Come back and run `/balance` to confirm.\n\n" +
+          "The agent spends this OKB to anchor each sealed verdict on-chain.",
+      });
+      return;
+    }
+    push({
+      id: nid(),
+      kind: "assistant",
+      text: `Unknown command "${text.trim()}". Try /model, /balance, /wallet, /fund, /clear, /help.`,
+    });
   }, []);
 
   const decide = useCallback(async (signalId: string, decision: "confirm" | "cancel") => {

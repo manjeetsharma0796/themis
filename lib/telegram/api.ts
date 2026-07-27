@@ -40,4 +40,17 @@ export const setWebhook = (token: string, url: string, secret: string) =>
     allowed_updates: ["message", "callback_query"],
   });
 
+/** The command list shown in Telegram's "/" menu. Registered at connect time. */
+export const BOT_COMMANDS = [
+  { command: "start", description: "What Themis can do" },
+  { command: "portfolio", description: "Positions & PnL" },
+  { command: "clear", description: "Reset our conversation" },
+  { command: "help", description: "How to use Themis" },
+];
+
+export const setMyCommands = (
+  token: string,
+  commands: { command: string; description: string }[] = BOT_COMMANDS
+) => call(token, "setMyCommands", { commands });
+
 export const deleteWebhook = (token: string) => call(token, "deleteWebhook", {});

@@ -172,21 +172,40 @@ export function Ledger({ version }: { version: number }) {
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2">
-                    <span className="truncate font-mono text-[10px] text-brass-deep">
-                      {s.commitHash.slice(0, 20)}…
-                    </span>
+                    {s.anchorExplorer ? (
+                      <a
+                        href={s.anchorExplorer}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="View the on-chain seal on the X Layer explorer"
+                        className="truncate font-mono text-[10px] text-brass hover:underline"
+                      >
+                        ⛓ {(s.anchorTx ?? s.commitHash).slice(0, 18)}… ↗
+                      </a>
+                    ) : (
+                      <span
+                        className="truncate font-mono text-[10px] text-brass-deep"
+                        title="Sealed off-chain. Execute with a funded agent wallet to anchor this on X Layer."
+                      >
+                        {s.commitHash.slice(0, 20)}…
+                      </span>
+                    )}
                     <VerifyChip id={s.id} />
                   </div>
-                  {s.anchorExplorer && (
+                  {s.anchorExplorer ? (
                     <a
                       href={s.anchorExplorer}
                       target="_blank"
                       rel="noreferrer"
                       className="mt-1 inline-block font-mono text-[10px] text-brass hover:underline"
                     >
-                      ⛓ anchored on X Layer ↗
+                      ⛓ on-chain record ↗
                     </a>
-                  )}
+                  ) : s.status === "executed" ? (
+                    <span className="mt-1 inline-block font-mono text-[10px] text-faint">
+                      off-chain seal · fund the agent wallet to anchor
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

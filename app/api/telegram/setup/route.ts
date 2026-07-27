@@ -3,7 +3,7 @@
 // tears the connection down. Requires HTTPS (Telegram won't call localhost).
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { getMe, setWebhook, deleteWebhook } from "@/lib/telegram/api";
+import { getMe, setWebhook, deleteWebhook, setMyCommands } from "@/lib/telegram/api";
 import { readTelegram, writeTelegram, clearTelegram } from "@/lib/telegram/store";
 
 export const runtime = "nodejs";
@@ -49,6 +49,7 @@ export async function POST(req: Request) {
     );
   }
 
+  await setMyCommands(token); // populate the "/" command menu
   await writeTelegram({ token, username, secret, setAt: Date.now() });
   return NextResponse.json({ ok: true, username });
 }
