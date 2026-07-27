@@ -73,7 +73,12 @@ export async function handleTelegramUpdate(update: TgUpdate, token: string): Pro
   };
 
   try {
-    await runCopilot(history, text, emit); // server env key (Mistral) — or deterministic fallback
+    // Fast model + no wasted suggestion-chips call + a tight Telegram tone.
+    await runCopilot(history, text, emit, { models: { mistral: "ministral-8b-latest" } }, {
+      skipChips: true,
+      systemExtra:
+        "You're replying in a Telegram DM. Be tight: at most 1–4 short lines, plain text, no markdown headers, no 'Next?' menus or bulleted follow-up suggestions. Answer directly, then stop.",
+    });
   } catch {
     await sendMessage(token, chatId, "⚠️ I hit a snag thinking that through — try again in a moment.");
     return;

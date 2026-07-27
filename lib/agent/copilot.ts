@@ -107,12 +107,13 @@ export async function runCopilot(
   history: ChatMessage[],
   userText: string,
   emit: (e: ChatEvent) => void,
-  cfg?: RuntimeConfig
+  cfg?: RuntimeConfig,
+  opts?: { skipChips?: boolean; systemExtra?: string }
 ): Promise<void> {
   if (!hasAnyKey(cfg)) return runFallback(userText, emit);
 
   const messages: ChatMessage[] = [
-    { role: "system", content: SYSTEM },
+    { role: "system", content: opts?.systemExtra ? `${SYSTEM}\n\n${opts.systemExtra}` : SYSTEM },
     ...history,
     { role: "user", content: userText },
   ];
@@ -175,7 +176,7 @@ export async function runCopilot(
       }
     }
 
-    emit({ type: "chips", items: await suggestChips(lastAnswer, cfg) });
+    if (!opts?.skipChips) emit({ type: "chips", items: await suggestChips(lastAnswer, cfg) });
   } catch (err) {
     if (err instanceof NoProvidersError) return runFallback(userText, emit);
     emit({
