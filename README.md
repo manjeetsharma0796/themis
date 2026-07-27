@@ -6,7 +6,7 @@ the verdict is **keccak256-sealed before execution**, so the record can never be
 rewritten. Verdicts are sold to other agents per-call (x402 / A2MCP) — built for the
 **OKX.AI Genesis Hackathon**.
  
-## Surfaces 
+## Surfaces  
 
 | Surface | What it is |
 |---|---|
