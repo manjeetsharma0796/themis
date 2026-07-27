@@ -5,6 +5,7 @@ import { WalletCard } from "@/components/settings/WalletCard";
 import { ConnectWallet } from "@/components/wallet/ConnectWallet";
 import { KeyManager } from "@/components/settings/KeyManager";
 import { McpManager } from "@/components/settings/McpManager";
+import { TelegramConnect } from "@/components/settings/TelegramConnect";
 
 export default function SettingsPage() {
   return (
@@ -35,14 +36,7 @@ export default function SettingsPage() {
         </section>
         <KeyManager />
         <McpManager />
-        <section className="keyline-soft rounded bg-surface p-5">
-          <h3 className="font-serif text-lg font-medium">Telegram (remote)</h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted">
-            Message the copilot away from the browser: create a bot with @BotFather, set{" "}
-            <code className="text-brass">TELEGRAM_BOT_TOKEN</code> in <code className="text-brass">.env</code>, and run{" "}
-            <code className="text-brass">npm run bot</code>.
-          </p>
-        </section>
+        <TelegramConnect title="Telegram (remote)" />
       </main>
     </div>
   );

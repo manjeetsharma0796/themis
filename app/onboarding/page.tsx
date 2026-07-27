@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { WalletCard } from "@/components/settings/WalletCard";
 import { KeyManager } from "@/components/settings/KeyManager";
+import { TelegramConnect } from "@/components/settings/TelegramConnect";
 import { markOnboarded } from "@/lib/config";
 
 const STEPS = ["Wallet", "Brain", "Remote", "Ready"];
@@ -94,26 +95,11 @@ export default function OnboardingPage() {
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">optional · step 3 of 4</p>
               <h1 className="mt-2 font-serif text-4xl">Connect Telegram</h1>
-              <p className="mt-2 text-muted">Message the copilot from anywhere — away from the browser.</p>
+              <p className="mt-2 text-muted">
+                Paste your bot token — the copilot answers from your pocket, away from the browser.
+              </p>
             </div>
-            <section className="keyline-soft rounded bg-surface p-5">
-              <h3 className="font-serif text-lg font-medium">Remote control</h3>
-              <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-muted">
-                <li>
-                  Create a bot with{" "}
-                  <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-brass hover:underline">
-                    @BotFather
-                  </a>{" "}
-                  and copy its token.
-                </li>
-                <li>
-                  Set <code className="rounded bg-ink px-1 text-brass">TELEGRAM_BOT_TOKEN</code> in{" "}
-                  <code className="rounded bg-ink px-1 text-brass">.env</code>, then run{" "}
-                  <code className="rounded bg-ink px-1 text-brass">npm run bot</code>.
-                </li>
-                <li>Open your bot in Telegram and send it an intent like “long BTC $200”.</li>
-              </ol>
-            </section>
+            <TelegramConnect title="Paste your bot token" />
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(1)}
