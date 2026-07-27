@@ -44,6 +44,7 @@ export const setWebhook = (token: string, url: string, secret: string) =>
 export const BOT_COMMANDS = [
   { command: "start", description: "What Themis can do" },
   { command: "portfolio", description: "Positions & PnL" },
+  { command: "model", description: "Pick the AI model" },
   { command: "clear", description: "Reset our conversation" },
   { command: "help", description: "How to use Themis" },
 ];

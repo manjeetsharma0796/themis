@@ -8,6 +8,7 @@ import { getSignal, saveSignal } from "@/lib/agent/run";
 import { openPosition, portfolio } from "@/lib/exec/paper";
 import { readJson, writeJson } from "@/lib/store";
 import { sendMessage, sendChatAction, answerCallbackQuery } from "@/lib/telegram/api";
+import { listModels, getChatModel, setChatModel, DEFAULT_MODEL } from "@/lib/telegram/models";
 import type { ChatMessage } from "@/lib/llm/types";
 import type { Signal } from "@/lib/types";
 
@@ -30,7 +31,7 @@ const START =
   "• _what's BTC doing?_\n" +
   "• _what can I buy with $500?_\n" +
   "• _should I long SOL?_ → I convene the tribunal and seal a verdict\n\n" +
-  "/portfolio — positions & PnL\n/clear — reset our conversation";
+  "/portfolio — positions & PnL\n/model — pick the AI model\n/clear — reset our conversation";
 
 export async function handleTelegramUpdate(update: TgUpdate, token: string): Promise<void> {
   if (update.callback_query) {
@@ -56,6 +57,10 @@ export async function handleTelegramUpdate(update: TgUpdate, token: string): Pro
     await sendPortfolio(token, chatId);
     return;
   }
+  if (text === "/model" || text === "/models") {
+    await sendModelPicker(token, chatId);
+    return;
+  }
 
   // Everything else → the full copilot (same brain as the website).
   await sendChatAction(token, chatId, "typing");
@@ -72,9 +77,10 @@ export async function handleTelegramUpdate(update: TgUpdate, token: string): Pro
     else if (e.type === "proposal") proposal = e.signal;
   };
 
+  const model = (await getChatModel(chatId)) ?? DEFAULT_MODEL;
   try {
-    // Fast model + no wasted suggestion-chips call + a tight Telegram tone.
-    await runCopilot(history, text, emit, { models: { mistral: "ministral-8b-latest" } }, {
+    // Per-chat model + no wasted suggestion-chips call + a tight Telegram tone.
+    await runCopilot(history, text, emit, { models: { mistral: model } }, {
       skipChips: true,
       systemExtra:
         "You're replying in a Telegram DM. Be tight: at most 1–4 short lines, plain text, no markdown headers, no 'Next?' menus or bulleted follow-up suggestions. Answer directly, then stop.",
@@ -129,9 +135,31 @@ async function sendPortfolio(token: string, chatId: number): Promise<void> {
   );
 }
 
+async function sendModelPicker(token: string, chatId: number): Promise<void> {
+  const models = await listModels();
+  const current = (await getChatModel(chatId)) ?? DEFAULT_MODEL;
+  const rows: { text: string; callback_data: string }[][] = [];
+  for (let i = 0; i < models.length; i += 2) {
+    rows.push(
+      models.slice(i, i + 2).map((m) => ({ text: m === current ? `✓ ${m}` : m, callback_data: `mdl:${m}` }))
+    );
+  }
+  await sendMessage(token, chatId, `🧠 *Pick a model* — current: \`${current}\``, {
+    inline_keyboard: rows,
+  });
+}
+
 async function handleCallback(cq: TgCallback, token: string): Promise<void> {
   const [action, id] = (cq.data ?? "").split(":");
   const chatId = cq.message?.chat?.id;
+
+  if (action === "mdl" && id) {
+    if (chatId) await setChatModel(chatId, id);
+    await answerCallbackQuery(token, cq.id, `Model → ${id}`);
+    if (chatId) await sendMessage(token, chatId, `✓ Model set to \`${id}\` — used from your next message.`);
+    return;
+  }
+
   const signal = id ? await getSignal(id) : null;
 
   if (!signal || signal.status !== "pending") {
