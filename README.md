@@ -78,7 +78,7 @@ Themis leans on the OKX stack end to end, from market data to settlement:
 |---|---|---|
 | **OKX X Layer** (testnet, chain `1952`) | On-chain **seal anchoring** — the commit-reveal proof that the record wasn't doctored. OKB gas, OKLink explorer. | [`lib/chain/xlayer.ts`](lib/chain/xlayer.ts), [`lib/chain/anchor.ts`](lib/chain/anchor.ts), [`lib/wallet/anchorClient.ts`](lib/wallet/anchorClient.ts) |
 | **OKX Market Data** (v5 public API) | Live **candles, ticker, and order book** — the tribunal's evidence, the chart, and depth-weighted fills. No API key needed. | [`lib/market/okx.ts`](lib/market/okx.ts) |
-| **OKX Wallet** | Connect + **derive the agent wallet**, mapped to the user's OKX wallet; auto-switches to X Layer. | [`lib/wallet/injected.ts`](lib/wallet/injected.ts) |
+| **OKX Wallet** (via wagmi) | Connect + **derive the agent wallet**, mapped to your OKX wallet; wagmi handles EIP-6963 discovery, account/chain events, and X Layer switching. | [`lib/wallet/useAgentWallet.ts`](lib/wallet/useAgentWallet.ts), [`lib/wallet/wagmi.ts`](lib/wallet/wagmi.ts) |
 | **x402 / A2MCP** (Agentic Settlement) | Sell sealed verdicts to other agents **per-call**, settled on X Layer (`eip155:1952`). | [`lib/x402/*`](lib/x402), [`app/api/service/signal`](app/api/service/signal) |
 
 **Why this matters for agentic trading:** an agent that can *trade* is common; an agent
