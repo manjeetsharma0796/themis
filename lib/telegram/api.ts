@@ -29,6 +29,10 @@ export const sendMessage = (
 export const answerCallbackQuery = (token: string, id: string, text?: string) =>
   call(token, "answerCallbackQuery", { callback_query_id: id, text });
 
+/** "typing" bubble while the copilot thinks — lasts ~5s, so re-send for long runs. */
+export const sendChatAction = (token: string, chatId: number | string, action = "typing") =>
+  call(token, "sendChatAction", { chat_id: chatId, action });
+
 export const setWebhook = (token: string, url: string, secret: string) =>
   call(token, "setWebhook", {
     url,

@@ -5,6 +5,7 @@ import { readTelegram } from "@/lib/telegram/store";
 import { handleTelegramUpdate } from "@/lib/telegram/handle";
 
 export const runtime = "nodejs";
+export const maxDuration = 60; // the copilot may call several tools before replying
 
 export async function POST(req: Request) {
   const rec = await readTelegram();
