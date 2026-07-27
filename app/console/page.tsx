@@ -10,6 +10,7 @@ import { CandleChart } from "@/components/console/CandleChart";
 import { Ledger } from "@/components/console/Ledger";
 import { useCopilot } from "@/components/console/useCopilot";
 import { isOnboarded } from "@/lib/config";
+import { ConnectWallet } from "@/components/wallet/ConnectWallet";
 
 export default function ConsolePage() {
   const {
@@ -41,6 +42,7 @@ export default function ConsolePage() {
           trading copilot · paper fills · live okx evidence
         </p>
         <div className="flex items-center gap-2">
+          <ConnectWallet />
           <Link
             href="/settings"
             className="keyline rounded px-2.5 py-1 font-mono text-[10px] font-medium text-muted transition-colors hover:text-brass"

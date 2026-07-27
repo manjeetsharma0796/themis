@@ -2,6 +2,7 @@
 // Settings — wallet + BYOK keys/models, all persisted in-browser.
 import Link from "next/link";
 import { WalletCard } from "@/components/settings/WalletCard";
+import { ConnectWallet } from "@/components/wallet/ConnectWallet";
 import { KeyManager } from "@/components/settings/KeyManager";
 import { McpManager } from "@/components/settings/McpManager";
 
@@ -23,6 +24,15 @@ export default function SettingsPage() {
 
       <main className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <WalletCard />
+        <section className="keyline-soft rounded bg-surface p-5">
+          <h3 className="font-serif text-lg font-medium">Connect an external wallet</h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            Prefer your own OKX Wallet? Connect the extension — it&apos;ll switch to X Layer testnet.
+          </p>
+          <div className="mt-4">
+            <ConnectWallet />
+          </div>
+        </section>
         <KeyManager />
         <McpManager />
         <section className="keyline-soft rounded bg-surface p-5">
