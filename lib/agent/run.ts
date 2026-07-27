@@ -7,20 +7,20 @@ import { advocate, skeptic, judge, judgeLine } from "@/lib/agent/tribunal";
 import { hashSignal } from "@/lib/agent/commit";
 import { readJson, writeJson } from "@/lib/store";
 
-export function listSignals(): Signal[] {
+export async function listSignals(): Promise<Signal[]> {
   return readJson<Signal[]>("signals", []);
 }
 
-export function saveSignal(signal: Signal) {
-  const all = listSignals();
+export async function saveSignal(signal: Signal): Promise<void> {
+  const all = await listSignals();
   const i = all.findIndex((s) => s.id === signal.id);
   if (i >= 0) all[i] = signal;
   else all.unshift(signal);
-  writeJson("signals", all);
+  await writeJson("signals", all);
 }
 
-export function getSignal(id: string): Signal | null {
-  return listSignals().find((s) => s.id === id) ?? null;
+export async function getSignal(id: string): Promise<Signal | null> {
+  return (await listSignals()).find((s) => s.id === id) ?? null;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -46,7 +46,7 @@ export async function runAgent(
   await sleep(pace);
 
   emit({ type: "step", label: "Gathering evidence" });
-  emit({ type: "tool", name: "get_ticker", detail: `${intent.symbol} · Bybit live` });
+  emit({ type: "tool", name: "get_ticker", detail: `${intent.symbol} · OKX live` });
   const snapshot = await buildSnapshot(intent.symbol);
   emit({
     type: "tool",
@@ -87,7 +87,7 @@ export async function runAgent(
     revealedAt: null,
     status: verdict.ruling === "REJECT" ? "rejected" : "pending",
   };
-  saveSignal(signal);
+  await saveSignal(signal);
   emit({ type: "commit", hash: commitHash, id });
   await sleep(pace * 0.7);
 

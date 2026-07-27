@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const free = url.searchParams.get("tier") === "free";
   const cfg = x402Config();
 
-  const latest = listSignals().find((s) => s.status !== "cancelled");
+  const latest = (await listSignals()).find((s) => s.status !== "cancelled");
   if (!latest) {
     return Response.json({ error: "no signals issued yet" }, { status: 404 });
   }

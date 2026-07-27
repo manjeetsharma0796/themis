@@ -86,7 +86,7 @@ bot.on("message:text", async (ctx) => {
 
 bot.callbackQuery(/^exec:(.+)$/, async (ctx) => {
   const id = ctx.match[1];
-  const signal = getSignal(id);
+  const signal = await getSignal(id);
   if (!signal || signal.status !== "pending") {
     await ctx.answerCallbackQuery({ text: "Already settled." });
     return;
@@ -94,7 +94,7 @@ bot.callbackQuery(/^exec:(.+)$/, async (ctx) => {
   const position = await openPosition(signal);
   signal.status = "executed";
   signal.revealedAt = Date.now();
-  saveSignal(signal);
+  await saveSignal(signal);
   await ctx.answerCallbackQuery({ text: "Executed." });
   await ctx.reply(
     `✅ Filled: ${position.side.toUpperCase()} ${position.symbol} ${fmtUsd(position.sizeUsd)} @ ${position.entryPrice.toLocaleString()}\n` +
@@ -105,10 +105,10 @@ bot.callbackQuery(/^exec:(.+)$/, async (ctx) => {
 
 bot.callbackQuery(/^dismiss:(.+)$/, async (ctx) => {
   const id = ctx.match[1];
-  const signal = getSignal(id);
+  const signal = await getSignal(id);
   if (signal && signal.status === "pending") {
     signal.status = "cancelled";
-    saveSignal(signal);
+    await saveSignal(signal);
   }
   await ctx.answerCallbackQuery({ text: "Dismissed." });
   await ctx.reply("🗂 Case dismissed. The commit stays on the record.");

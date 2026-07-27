@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const signal = getSignal(id);
+  const signal = await getSignal(id);
   if (!signal) return Response.json({ error: "unknown signal" }, { status: 404 });
   const { ok, recomputed } = verifySignal(signal);
   return Response.json({

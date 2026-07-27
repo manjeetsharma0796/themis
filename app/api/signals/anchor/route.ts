@@ -10,10 +10,10 @@ export async function POST(req: Request) {
     explorer?: string;
   };
   if (!id || !txHash) return Response.json({ error: "id and txHash required" }, { status: 400 });
-  const s = getSignal(id);
+  const s = await getSignal(id);
   if (!s) return Response.json({ error: "unknown signal" }, { status: 404 });
   s.anchorTx = txHash;
   s.anchorExplorer = explorer ?? `https://www.oklink.com/x-layer-testnet/tx/${txHash}`;
-  saveSignal(s);
+  await saveSignal(s);
   return Response.json({ signal: s });
 }

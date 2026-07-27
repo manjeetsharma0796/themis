@@ -179,7 +179,7 @@ export async function executeTool(name: string, rawArgs: string): Promise<ToolOu
         revealedAt: null,
         status: verdict.ruling === "REJECT" ? "rejected" : "pending",
       };
-      saveSignal(signal);
+      await saveSignal(signal);
       return {
         content:
           `Tribunal verdict on ${side} ${sym} $${size}: ${verdict.ruling} ` +

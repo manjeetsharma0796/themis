@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   if (!id || !decision) {
     return Response.json({ error: "id and decision required" }, { status: 400 });
   }
-  const signal = getSignal(id);
+  const signal = await getSignal(id);
   if (!signal) return Response.json({ error: "unknown signal" }, { status: 404 });
   if (signal.status !== "pending") {
     return Response.json({ error: `signal is ${signal.status}` }, { status: 409 });
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   if (decision === "cancel") {
     signal.status = "cancelled";
-    saveSignal(signal);
+    await saveSignal(signal);
     return Response.json({ signal });
   }
 
@@ -33,6 +33,6 @@ export async function POST(req: Request) {
     signal.anchorTx = anchor.txHash;
     signal.anchorExplorer = anchor.explorer;
   }
-  saveSignal(signal);
+  await saveSignal(signal);
   return Response.json({ signal, position });
 }

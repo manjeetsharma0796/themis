@@ -7,12 +7,12 @@ import { getTicker } from "@/lib/market/okx";
 
 const EQUITY_START = 10_000;
 
-export function listPositions(): Position[] {
+export async function listPositions(): Promise<Position[]> {
   return readJson<Position[]>("positions", []);
 }
 
-function savePositions(p: Position[]) {
-  writeJson("positions", p);
+async function savePositions(p: Position[]): Promise<void> {
+  await writeJson("positions", p);
 }
 
 export async function openPosition(signal: Signal): Promise<Position> {
@@ -35,14 +35,14 @@ export async function openPosition(signal: Signal): Promise<Position> {
       toHex(`${signal.id}:${price}:${sizeUsd}:${Date.now()}`)
     ),
   };
-  const all = listPositions();
+  const all = await listPositions();
   all.unshift(position);
-  savePositions(all);
+  await savePositions(all);
   return position;
 }
 
 export async function closePosition(id: string): Promise<Position | null> {
-  const all = listPositions();
+  const all = await listPositions();
   const pos = all.find((p) => p.id === id && p.status === "open");
   if (!pos) return null;
   const { price } = await getTicker(pos.symbol);
@@ -51,12 +51,12 @@ export async function closePosition(id: string): Promise<Position | null> {
   pos.closedAt = Date.now();
   pos.realizedPnl = (price - pos.entryPrice) * pos.qty * dir;
   pos.status = "closed";
-  savePositions(all);
+  await savePositions(all);
   return pos;
 }
 
 export async function portfolio(): Promise<PortfolioView> {
-  const all = listPositions();
+  const all = await listPositions();
   const marks = new Map<string, number>();
   for (const sym of new Set(all.filter((p) => p.status === "open").map((p) => p.symbol))) {
     try {
