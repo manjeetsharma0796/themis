@@ -5,7 +5,7 @@ puts each decision on trial: an **advocate** argues your intent, a **skeptic** p
 it, and a **judge** rules on live OKX market evidence — then the verdict is
 **keccak256-sealed *before* execution and anchored on OKX X Layer**, so the track record
 can never be quietly rewritten.
-
+ 
 Talk to it, or trade the chart by hand — either way, every fill lands on the same 
 tamper-evident, on-chain record.
 
