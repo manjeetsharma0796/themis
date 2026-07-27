@@ -236,6 +236,30 @@ export function useCopilot() {
     );
     setItems(itemsRef.current);
     setPortfolioVersion((v) => v + 1);
+
+    // A: anchor the seal on X Layer with the funded browser wallet (unless already server-anchored).
+    const sig = json.signal;
+    if (decision === "confirm" && sig.status === "executed" && !sig.anchorTx) {
+      try {
+        const { anchorSealOnChain } = await import("@/lib/wallet/anchorClient");
+        const anchor = await anchorSealOnChain(sig.commitHash);
+        if (anchor) {
+          await fetch("/api/signals/anchor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: signalId, txHash: anchor.txHash, explorer: anchor.explorer }),
+          });
+          itemsRef.current = itemsRef.current.map((i) =>
+            i.kind === "proposal" && i.signal.id === signalId
+              ? { ...i, signal: { ...i.signal, anchorTx: anchor.txHash, anchorExplorer: anchor.explorer } }
+              : i
+          );
+          setItems(itemsRef.current);
+        }
+      } catch {
+        /* insufficient funds / wallet issue — keep the paper receipt, skip anchoring */
+      }
+    }
   }, []);
 
   return {
