@@ -13,6 +13,8 @@ Built for the **OKX.AI Genesis Hackathon** · Live at **[trythemis.vercel.app](h
 
 ![Themis on trythemis.vercel.app — the copilot's live SOL analysis, the OKX order book, and a ledger with a verdict anchored on X Layer](docs/img/console-live.png)
 
+**▶ [Watch the 35-second demo](docs/video/themis-demo.webm)** — Mistral copilot → sealed tribunal verdict (with order-book evidence) → manual trade → the seal anchored on **OKX X Layer**.
+
 ---
 
 ## The problem it solves 
