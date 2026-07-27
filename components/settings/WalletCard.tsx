@@ -2,11 +2,14 @@
 // Frictionless wallet — auto-created on first view, funded by QR, balance on X Layer.
 import { useCallback, useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { getOrCreateWallet, resetWallet } from "@/lib/wallet/wallet";
+import { getOrCreateWallet, resetWallet, getMappedAddress } from "@/lib/wallet/wallet";
+import { connectAndDeriveAgent } from "@/lib/wallet/injected";
 
 export function WalletCard({ compact = false }: { compact?: boolean }) {
   const [address, setAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
+  const [mapped, setMapped] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -26,8 +29,19 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
   useEffect(() => {
     const w = getOrCreateWallet();
     setAddress(w.address);
+    setMapped(getMappedAddress());
     void refresh(w.address);
   }, [refresh]);
+
+  const sync = async () => {
+    setSyncing(true);
+    const r = await connectAndDeriveAgent();
+    setSyncing(false);
+    if ("error" in r) return;
+    setAddress(r.agentAddress);
+    setMapped(r.userAddress);
+    void refresh(r.agentAddress);
+  };
 
   if (!address) return null;
   const short = `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -36,9 +50,15 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
     <section className="keyline-soft rounded bg-surface p-5">
       <div className="flex items-baseline justify-between">
         <h3 className="font-serif text-lg font-medium">Your wallet</h3>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-faint">
-          auto-created · X Layer testnet
-        </span>
+        {mapped ? (
+          <span className="flex items-center gap-1.5 font-mono text-[10px] text-up">
+            <span className="h-1.5 w-1.5 rounded-full bg-up" /> synced · {mapped.slice(0, 6)}…{mapped.slice(-4)}
+          </span>
+        ) : (
+          <span className="font-mono text-[10px] uppercase tracking-widest text-faint">
+            local · X Layer testnet
+          </span>
+        )}
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3 rounded bg-ink px-3 py-2">
@@ -90,6 +110,20 @@ export function WalletCard({ compact = false }: { compact?: boolean }) {
         </a>
         , then refresh. Key is generated on this device and never leaves it.
       </p>
+
+      {!compact && (
+        <button
+          onClick={sync}
+          disabled={syncing}
+          className="mt-3 mr-4 font-mono text-[10px] text-faint transition-colors hover:text-brass disabled:opacity-50"
+        >
+          {syncing
+            ? "waiting for signature…"
+            : mapped
+              ? "↻ re-sync agent with wallet"
+              : "🔗 sync agent with your wallet (same on every device)"}
+        </button>
+      )}
 
       {!compact && (
         <button

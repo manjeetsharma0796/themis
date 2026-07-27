@@ -2,10 +2,11 @@
 // Frictionless onboarding — Wallet (required) → Brain (BYOK) → Remote (Telegram) → Ready.
 import { useState } from "react";
 import Link from "next/link";
-import { WalletCard } from "@/components/settings/WalletCard";
+import { WalletSetup } from "@/components/settings/WalletSetup";
 import { KeyManager } from "@/components/settings/KeyManager";
 import { TelegramConnect } from "@/components/settings/TelegramConnect";
 import { markOnboarded } from "@/lib/config";
+import { getOrCreateWallet } from "@/lib/wallet/wallet";
 
 const STEPS = ["Wallet", "Brain", "Remote", "Ready"];
 
@@ -42,14 +43,18 @@ export default function OnboardingPage() {
           <div className="space-y-5">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brass">required · step 1 of 4</p>
-              <h1 className="mt-2 font-serif text-4xl">Create your wallet</h1>
+              <h1 className="mt-2 font-serif text-4xl">Set up your wallet</h1>
               <p className="mt-2 text-muted">
-                Auto-created on this device — the only step you truly need. Fund it later from Settings.
+                Connect your wallet and your agent wallet is derived from it — the same on every device.
+                Or start with a device-local one.
               </p>
             </div>
-            <WalletCard />
+            <WalletSetup />
             <button
-              onClick={() => setStep(1)}
+              onClick={() => {
+                getOrCreateWallet(); // guarantee an agent wallet exists before moving on
+                setStep(1);
+              }}
               className="w-full rounded bg-brass px-6 py-3 font-mono text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5"
             >
               Continue →
