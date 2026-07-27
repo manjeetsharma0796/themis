@@ -25,6 +25,7 @@ export default function ConsolePage() {
     command,
     selectModel,
     decide,
+    bumpLedger,
   } = useCopilot();
 
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function ConsolePage() {
         <PanelResizeHandle />
 
         <Panel defaultSize={40} minSize={26} className="overflow-hidden">
-          <MarketPanel symbol={symbol} />
+          <MarketPanel symbol={symbol} onTraded={bumpLedger} />
         </Panel>
 
         <PanelResizeHandle />

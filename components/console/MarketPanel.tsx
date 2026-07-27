@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { CandleChart } from "./CandleChart";
 import { OrderBook } from "./OrderBook";
+import { TradeTicket } from "./TradeTicket";
 
 const TOKENS = ["BTC", "ETH", "SOL", "SUI", "MNT"];
 const INTERVALS = [
@@ -18,7 +19,7 @@ const INTERVALS = [
 const fmtPrice = (n: number) =>
   n.toLocaleString("en-US", { maximumFractionDigits: n >= 1000 ? 1 : n >= 1 ? 2 : 4 });
 
-export function MarketPanel({ symbol }: { symbol: string }) {
+export function MarketPanel({ symbol, onTraded }: { symbol: string; onTraded?: () => void }) {
   const [view, setView] = useState(symbol);
   const [bar, setBar] = useState("60");
   const [tick, setTick] = useState<{ price: number; chg: number } | null>(null);
@@ -107,6 +108,8 @@ export function MarketPanel({ symbol }: { symbol: string }) {
       <div className="min-h-0 flex-[2]">
         <OrderBook symbol={view} />
       </div>
+
+      <TradeTicket symbol={view} onTraded={onTraded} />
     </section>
   );
 }

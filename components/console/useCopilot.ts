@@ -163,6 +163,8 @@ export function useCopilot() {
     }
   }, []);
 
+  const bumpLedger = useCallback(() => setPortfolioVersion((v) => v + 1), []);
+
   const selectModel = useCallback((prov: string, id: string) => {
     const c = loadConfig();
     saveConfig({ ...c, keys: c.keys ?? {}, models: { ...(c.models ?? {}), [prov]: id } });
@@ -350,5 +352,6 @@ export function useCopilot() {
     command,
     selectModel,
     decide,
+    bumpLedger,
   };
 }

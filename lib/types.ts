@@ -42,7 +42,7 @@ export type TribunalLine = {
 };
 
 export type Verdict = {
-  ruling: "APPROVE" | "REJECT" | "REVISE";
+  ruling: "APPROVE" | "REJECT" | "REVISE" | "MANUAL"; // MANUAL = placed by hand from the chart
   confidence: number; // 0..100
   sizeUsd: number; // possibly revised down
   rationale: string;

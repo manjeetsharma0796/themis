@@ -31,7 +31,11 @@ function RulingCard({
 }) {
   const v = signal.verdict;
   const tone =
-    v.ruling === "APPROVE" ? "text-up" : v.ruling === "REVISE" ? "text-brass" : "text-down";
+    v.ruling === "APPROVE" || v.ruling === "MANUAL"
+      ? "text-up"
+      : v.ruling === "REVISE"
+        ? "text-brass"
+        : "text-down";
   return (
     <div className="keyline rounded bg-raised p-4">
       <div className="flex items-start justify-between gap-3">
