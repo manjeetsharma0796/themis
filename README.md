@@ -5,7 +5,7 @@ argues it, a skeptic prosecutes it, and a judge rules on live market evidence â€
 the verdict is **keccak256-sealed before execution**, so the record can never be
 rewritten. Verdicts are sold to other agents per-call (x402 / A2MCP) â€” built for the
 **OKX.AI Genesis Hackathon**.
-
+ 
 ## Surfaces  
 
 | Surface | What it is |
