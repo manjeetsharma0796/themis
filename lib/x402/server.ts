@@ -13,6 +13,16 @@ import { atomicAmount, x402Config, type X402Config } from "@/lib/x402/config";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
+/** Encode the full x402 v2 challenge as a base64 PAYMENT-REQUIRED header value. */
+export function encodePaymentChallenge(
+  resource: string,
+  requirements: PaymentRequirements[],
+  description?: string
+): string {
+  const challenge = { x402Version: 2, resource, description, accepts: requirements };
+  return Buffer.from(JSON.stringify(challenge)).toString("base64");
+}
+
 export function buildRequirements(
   resource: string,
   description: string,

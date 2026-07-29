@@ -1,7 +1,8 @@
 import Link from "next/link";
 
-const CURL_402 = `$ curl https://trythemis.vercel.app/api/service/signal
+const CURL_402 = `$ curl -v https://trythemis.vercel.app/api/service/signal
 HTTP/1.1 402 Payment Required
+payment-required: <base64-encoded x402 challenge>
 { "x402Version": 2, "accepts": [{ "scheme": "exact",
   "network": "eip155:1952", "amount": "100000",
   "asset": "0x…USDT", "payTo": "0x…asp",

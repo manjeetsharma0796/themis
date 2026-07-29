@@ -9,6 +9,7 @@ import { x402Config } from "@/lib/x402/config";
 import {
   buildRequirements,
   decodePaymentHeader,
+  encodePaymentChallenge,
   encodeSettleResponse,
   settlePayment,
   verifyPayment,
@@ -56,19 +57,24 @@ export async function GET(req: Request) {
   }
 
   const requirements = buildRequirements(RESOURCE, DESCRIPTION, cfg);
+  const challengeHeader = encodePaymentChallenge(RESOURCE, [requirements], DESCRIPTION);
+
+  function paymentRequired(body: Record<string, unknown>, status: number = 402): Response {
+    return Response.json({ x402Version: 2, ...body }, {
+      status,
+      headers: { "payment-required": challengeHeader, "x-payment-required": "true" },
+    });
+  }
+
   const header = req.headers.get("x-payment");
 
   // Unpaid → 402 with x402 v2 payment requirements
   if (!header) {
-    return Response.json(
-      {
-        x402Version: 2,
-        error: "payment required",
-        mode: cfg.live ? "live" : "demo",
-        accepts: [requirements],
-      },
-      { status: 402, headers: { "x-payment-required": "true" } }
-    );
+    return paymentRequired({
+      error: "payment required",
+      mode: cfg.live ? "live" : "demo",
+      accepts: [requirements],
+    });
   }
 
   // Decode the X-PAYMENT header
@@ -76,28 +82,25 @@ export async function GET(req: Request) {
   try {
     payment = decodePaymentHeader(header);
   } catch {
-    return Response.json(
-      { x402Version: 2, error: "malformed X-PAYMENT header", accepts: [requirements] },
-      { status: 402 }
-    );
+    return paymentRequired({ error: "malformed X-PAYMENT header", accepts: [requirements] });
   }
 
   // Verify
   const verdict = await verifyPayment(payment, requirements, cfg);
   if (!verdict.isValid) {
-    return Response.json(
-      { x402Version: 2, error: verdict.invalidReason ?? "verification failed", accepts: [requirements] },
-      { status: 402 }
-    );
+    return paymentRequired({
+      error: verdict.invalidReason ?? "verification failed",
+      accepts: [requirements],
+    });
   }
 
   // Settle (facilitator when live; labelled demo otherwise)
   const settle = await settlePayment(payment, requirements, cfg);
   if (!settle.success) {
-    return Response.json(
-      { x402Version: 2, error: settle.errorReason ?? "settlement failed", accepts: [requirements] },
-      { status: 402 }
-    );
+    return paymentRequired({
+      error: settle.errorReason ?? "settlement failed",
+      accepts: [requirements],
+    });
   }
 
   const receipt = encodeSettleResponse(settle);
