@@ -21,5 +21,8 @@ export const xlayerTestnet = defineChain({
   testnet: true,
 });
 
-/** CAIP-2 network id used by x402 PaymentRequirements (e.g. "eip155:1952"). */
+/** CAIP-2 network id for X Layer testnet (used by the seal anchor demo). */
 export const XLAYER_CAIP2 = `eip155:${XLAYER_TESTNET_ID}` as const;
+
+/** CAIP-2 for X Layer mainnet — the network OKX.AI x402 settlement runs on. */
+export const XLAYER_MAINNET_CAIP2 = `eip155:${XLAYER_MAINNET_ID}` as const;

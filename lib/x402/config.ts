@@ -1,6 +1,6 @@
 // x402 configuration — all OKX-specific values arrive via env at ASP-listing time.
 // Until a facilitator + payTo + asset are set, the endpoint runs in labelled demo mode.
-import { XLAYER_CAIP2 } from "@/lib/chain/xlayer";
+import { XLAYER_MAINNET_CAIP2 } from "@/lib/chain/xlayer";
 
 export type X402Config = {
   network: string; // CAIP-2
@@ -14,14 +14,20 @@ export type X402Config = {
   live: boolean; // true only when a real facilitator + payTo + asset are all present
 };
 
-// Only trust the env override if it's a real X Layer CAIP-2 (testnet 1952 / mainnet
-// 196). A stale "eip155:195" (a deprecated id) falls back to the correct chain.
+// OKX.AI's ASP marketplace settles x402 on X Layer MAINNET, so the challenge
+// network MUST be eip155:196 — testnet (1952) is rejected at listing review.
+// Ignore any stale env that would downgrade it; only an explicit 196 is honored.
 function validNetwork(env?: string): string {
-  return env && /^eip155:(1952|196)$/.test(env) ? env : XLAYER_CAIP2;
+  return env === "eip155:196" ? env : XLAYER_MAINNET_CAIP2;
 }
 
+// USDT on X Layer mainnet (eip155:196) — OKX official token list / OKLink.
+// Baked in so the x402 challenge always advertises a real settlement asset
+// (lowercased so it's always a valid address regardless of EIP-55 checksum).
+const XLAYER_USDT = "0x1e4a5963abfd975d8c9021ce480b42188849d41d";
+
 export function x402Config(): X402Config {
-  const asset = process.env.X402_ASSET ?? "";
+  const asset = process.env.X402_ASSET || XLAYER_USDT;
   const payTo = process.env.X402_PAY_TO ?? "";
   const facilitatorUrl = process.env.X402_FACILITATOR_URL ?? null;
   return {

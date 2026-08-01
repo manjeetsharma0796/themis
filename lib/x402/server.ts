@@ -13,13 +13,23 @@ import { atomicAmount, x402Config, type X402Config } from "@/lib/x402/config";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 
-/** Encode the full x402 v2 challenge as a base64 PAYMENT-REQUIRED header value. */
+/** Encode the full x402 v2 challenge as a base64 PAYMENT-REQUIRED header value.
+ *  OKX review requires exactly: {x402Version, resource, accepts:[{scheme, network,
+ *  asset, amount, payTo, maxTimeoutSeconds, extra}]} — so we emit that exact shape. */
 export function encodePaymentChallenge(
   resource: string,
-  requirements: PaymentRequirements[],
-  description?: string
+  requirements: PaymentRequirements[]
 ): string {
-  const challenge = { x402Version: 2, resource, description, accepts: requirements };
+  const accepts = requirements.map((r) => ({
+    scheme: r.scheme,
+    network: r.network,
+    asset: r.asset,
+    amount: r.amount,
+    payTo: r.payTo,
+    maxTimeoutSeconds: r.maxTimeoutSeconds,
+    extra: r.extra,
+  }));
+  const challenge = { x402Version: 2, resource, accepts };
   return Buffer.from(JSON.stringify(challenge)).toString("base64");
 }
 
