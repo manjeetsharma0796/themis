@@ -21,20 +21,20 @@ function validNetwork(env?: string): string {
   return env === "eip155:196" ? env : XLAYER_MAINNET_CAIP2;
 }
 
-// USDT on X Layer mainnet (eip155:196) — OKX official token list / OKLink.
-// Baked in so the x402 challenge always advertises a real settlement asset
-// (lowercased so it's always a valid address regardless of EIP-55 checksum).
-const XLAYER_USDT = "0x1e4a5963abfd975d8c9021ce480b42188849d41d";
+// USDT0 on X Layer mainnet (eip155:196) — the token OKX's x402 facilitator
+// requires for ASP settlement (per listing review). NOT the bridged "Tether USD".
+// Lowercased so it's always a valid address regardless of EIP-55 checksum.
+const XLAYER_USDT0 = "0x779ded0c9e1022225f8e0630b35a9b54be713736";
 
 export function x402Config(): X402Config {
-  const asset = process.env.X402_ASSET || XLAYER_USDT;
+  const asset = process.env.X402_ASSET || XLAYER_USDT0;
   const payTo = process.env.X402_PAY_TO ?? "";
   const facilitatorUrl = process.env.X402_FACILITATOR_URL ?? null;
   return {
     network: validNetwork(process.env.X402_NETWORK),
     asset,
     payTo,
-    assetName: process.env.X402_ASSET_NAME ?? "USDT",
+    assetName: process.env.X402_ASSET_NAME ?? "USDT0",
     assetVersion: process.env.X402_ASSET_VERSION ?? "1",
     decimals: Number(process.env.X402_ASSET_DECIMALS ?? 6),
     priceUsd: Number(process.env.X402_PRICE_USD ?? 0.1),
