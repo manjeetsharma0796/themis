@@ -34,7 +34,7 @@ export function x402Config(): X402Config {
     network: validNetwork(process.env.X402_NETWORK),
     asset,
     payTo,
-    assetName: process.env.X402_ASSET_NAME ?? "USDT0",
+    assetName: process.env.X402_ASSET_NAME ?? "USD₮0", // exact on-chain EIP-712 name (₮ = U+20AE)
     assetVersion: process.env.X402_ASSET_VERSION ?? "1",
     decimals: Number(process.env.X402_ASSET_DECIMALS ?? 6),
     priceUsd: Number(process.env.X402_PRICE_USD ?? 0.1),

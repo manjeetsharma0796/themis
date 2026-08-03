@@ -25,7 +25,7 @@ const RESOURCE = "/api/service/signal";
 const DESCRIPTION =
   "Themis verified trade verdict — full tribunal transcript, evidence snapshot, and keccak256 commit proof.";
 
-export async function GET(req: Request) {
+async function handle(req: Request) {
   const url = new URL(req.url);
   const free = url.searchParams.get("tier") === "free";
   const cfg = x402Config();
@@ -131,3 +131,8 @@ export async function GET(req: Request) {
     { headers: { "x-payment-response": receipt, "payment-response": receipt } }
   );
 }
+
+// A2MCP callers may probe via GET or POST — accept both. Params come from the
+// query string either way; the x402 payment flow itself is header-driven.
+export const GET = handle;
+export const POST = handle;
