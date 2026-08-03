@@ -34,7 +34,10 @@ export function x402Config(): X402Config {
     network: validNetwork(process.env.X402_NETWORK),
     asset,
     payTo,
-    assetName: process.env.X402_ASSET_NAME ?? "USD₮0", // exact on-chain EIP-712 name (₮ = U+20AE)
+    // Forced to USDT0's exact on-chain EIP-712 name (₮ = U+20AE). A stale
+    // X402_ASSET_NAME env (e.g. "USDT") must NOT override it — a wrong domain
+    // name breaks EIP-3009 signature verification against the token.
+    assetName: "USD₮0",
     assetVersion: process.env.X402_ASSET_VERSION ?? "1",
     decimals: Number(process.env.X402_ASSET_DECIMALS ?? 6),
     priceUsd: Number(process.env.X402_PRICE_USD ?? 0.1),

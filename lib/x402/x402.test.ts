@@ -49,6 +49,10 @@ describe("x402 OKX ASP challenge contract", () => {
     it("uses the exact on-chain EIP-712 name USD₮0 (₮ = U+20AE, not ASCII T)", () => {
       expect(x402Config().assetName).toBe("USD₮0");
     });
+    it("forces USD₮0 even when a stale X402_ASSET_NAME env is set", () => {
+      process.env.X402_ASSET_NAME = "USDT";
+      expect(x402Config().assetName).toBe("USD₮0");
+    });
     it("prices 0.10 at 6 decimals → 100000 atomic units", () => {
       expect(atomicAmount(x402Config())).toBe("100000");
     });
